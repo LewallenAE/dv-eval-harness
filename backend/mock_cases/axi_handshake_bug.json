@@ -1,0 +1,17 @@
+{
+  "id": "axi_handshake_bug",
+  "title": "AXI valid drops before ready",
+  "description": "An AXI-style source deasserts valid before the receiver raises ready, causing the transfer to be lost.",
+  "rtl": "module axi_source(input logic clk, input logic reset_n, input logic ready, input logic [31:0] data_in, output logic valid, output logic [31:0] data); always @(posedge clk) begin if (!reset_n) begin valid <= 0; data <= '0; end else if (data_in != '0) begin valid <= 1; data <= data_in; end else if (!ready) begin valid = 0; end end endmodule",
+  "testbench": "AXI handshake test expects valid to remain asserted until ready is observed.",
+  "expected_root_cause": "valid drops before ready in AXI-style handshake",
+  "valid_signals": ["clk", "reset_n", "valid", "ready", "data"],
+  "forbidden_targets": ["scoreboard", "monitor", "testbench", "golden_reference"],
+  "bug_signature": "valid = 0",
+  "fix_replacement": "valid <= valid && !ready",
+  "failure_log": "UVM_ERROR: VALID deasserted before READY handshake completed.\nASSERTION FAILED: valid must remain high until ready is asserted.\nCOVERAGE: 51.0",
+  "success_log": "UVM_INFO: AXI handshake completed without protocol violations.\nASSERTION PASSED: valid held until ready.\nCOVERAGE: 89.0",
+  "failure_coverage": 51.0,
+  "success_coverage": 89.0,
+  "expected_fix_contains": "valid <= valid && !ready"
+}

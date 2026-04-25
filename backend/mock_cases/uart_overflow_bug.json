@@ -1,0 +1,17 @@
+{
+  "id": "uart_overflow_bug",
+  "title": "UART FIFO overflow write",
+  "description": "The UART receive path increments the FIFO write pointer even when the FIFO is already full.",
+  "rtl": "module uart_rx(input logic clk, input logic reset_n, input logic rx_valid, input logic fifo_full, output logic [7:0] wr_ptr); always @(posedge clk) begin if (!reset_n) wr_ptr <= '0; else if (rx_valid) wr_ptr <= wr_ptr + 1; end endmodule",
+  "testbench": "UART receive test expects writes to be blocked while fifo_full is asserted.",
+  "expected_root_cause": "UART FIFO write pointer increments while FIFO is full",
+  "valid_signals": ["clk", "reset_n", "rx_valid", "fifo_full", "wr_ptr"],
+  "forbidden_targets": ["scoreboard", "monitor", "testbench", "golden_reference"],
+  "bug_signature": "wr_ptr <= wr_ptr + 1",
+  "fix_replacement": "if (!fifo_full) wr_ptr <= wr_ptr + 1",
+  "failure_log": "UVM_ERROR: FIFO write pointer advanced while fifo_full was asserted.\nASSERTION FAILED: wr_ptr must not increment on overflow.\nCOVERAGE: 47.5",
+  "success_log": "UVM_INFO: FIFO overflow protection behaved as expected.\nASSERTION PASSED: wr_ptr held constant while fifo_full was asserted.\nCOVERAGE: 91.0",
+  "failure_coverage": 47.5,
+  "success_coverage": 91.0,
+  "expected_fix_contains": "if (!fifo_full) wr_ptr <= wr_ptr + 1"
+}
