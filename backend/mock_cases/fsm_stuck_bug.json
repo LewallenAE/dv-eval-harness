@@ -1,17 +1,21 @@
 {
-  "id": "fsm_stuck_bug",
-  "title": "FSM stuck in IDLE",
-  "description": "A simple controller FSM remains stuck in IDLE even after start is asserted.",
-  "rtl": "module controller(input logic clk, input logic reset_n, input logic start, output logic done); typedef enum logic [1:0] {IDLE, BUSY, DONE} state_t; state_t state; always @(posedge clk) begin if (!reset_n) state <= IDLE; else if (state == IDLE && start) state = BUSY; else if (state == BUSY) state <= DONE; end assign done = (state == DONE); endmodule",
-  "testbench": "sequential FSM test expects nonblocking assignments and transition from IDLE to BUSY when start=1",
-  "expected_root_cause": "blocking assignment used in sequential FSM logic",
-  "valid_signals": ["clk", "reset_n", "start", "done", "state"],
-  "forbidden_targets": ["scoreboard", "monitor", "testbench", "golden_reference"],
   "bug_signature": "state = BUSY",
-  "fix_replacement": "state <= BUSY",
-  "failure_log": "UVM_ERROR: FSM remained in IDLE after start asserted.\nASSERTION FAILED: expected state transition IDLE -> BUSY.\nCOVERAGE: 42.0",
-  "success_log": "UVM_INFO: All checks passed.\nASSERTION PASSED: expected state transition observed.\nCOVERAGE: 87.5",
+  "description": "A simple controller FSM remains stuck in IDLE even after start is asserted due to blocking assignment.",
+  "expected_fix_contains": "state <= BUSY",
+  "expected_root_cause": "blocking assignment used in sequential FSM logic",
   "failure_coverage": 42.0,
+  "failure_log": "UVM_ERROR: FSM remained in IDLE after start asserted.\nASSERTION FAILED: expected state transition IDLE -> BUSY.\nCOVERAGE: 42.0",
+  "fix_replacement": "state <= BUSY",
+  "forbidden_targets": ["golden_reference", "monitor", "scoreboard", "testbench"],
+  "id": "fsm_stuck_bug",
+  "metadata": {
+    "category": "FSM",
+    "issue": "Race Condition"
+  },
+  "rtl": "module controller(input logic clk, input logic reset_n, input logic start, output logic done); typedef enum logic [1:0] {IDLE, BUSY, DONE} state_t; state_t state; always @(posedge clk) begin if (!reset_n) state <= IDLE; else if (state == IDLE && start) state = BUSY; else if (state == BUSY) state <= DONE; end assign done = (state == DONE); endmodule",
   "success_coverage": 87.5,
-  "expected_fix_contains": "state <= BUSY"
+  "success_log": "UVM_INFO: All checks passed.\nASSERTION PASSED: expected state transition observed.\nCOVERAGE: 87.5",
+  "testbench": "sequential FSM test expects nonblocking assignments and transition from IDLE to BUSY when start=1",
+  "title": "FSM stuck in IDLE",
+  "valid_signals": ["clk", "done", "reset_n", "start", "state"]
 }

@@ -1,14 +1,28 @@
+#!/usr/bin/env python3
+"""
+Immutable data contracts for hardware design validation and agentic telemetry.
+"""
+
+# ----------------- Futures -----------------
 from __future__ import annotations
+
+# ----------------- Standard Library -----------------
 from typing import Any
+
+# ----------------- Third Party Library -----------------
 from pydantic import BaseModel, Field
+
+# ----------------- Application Imports -----------------
+
+
+# ----------------- Module-level Configuration -----------------
 
 class AgentAction(BaseModel):
     input: str
-    metadata: dict[str, Any] Field = (default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
     output: str
     step: int
     tool_name: str
-
 
 class DVCase(BaseModel):
     bug_signature: str
@@ -28,17 +42,14 @@ class DVCase(BaseModel):
     title: str    
     valid_signals: list[str]    
 
-
 class EvaluationScores(BaseModel):
     evidence_quality: float = Field(ge=0.0, le=1.0)
     fix_plausibility: float = Field(ge=0.0, le=1.0)
-    metadata: dict[str, Any] Field = (default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
     no_hallucinated_signals: float = Field(ge=0.0, le=1.0)
     root_cause_correct: float = Field(ge=0.0, le=1.0)    
     tool_use_correctness: float = Field(ge=0.0, le=1.0)
-    
-    
-    
+
 class Trajectory(BaseModel):
     actions: list[AgentAction]
     case_id: str
@@ -50,6 +61,3 @@ class Trajectory(BaseModel):
     r_total: float
     root_cause: str    
     scores: EvaluationScores
-    
-   
-   

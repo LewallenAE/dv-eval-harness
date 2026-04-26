@@ -20,11 +20,11 @@ import torch.nn.functional as F
 # ----------------- Module-level Configuration -----------------
 
 def compute_dpo_loss(
-    pi_logps: torch.Tensor, 
-    ref_logps: torch.Tensor, 
-    yw_idxs: torch.Tensor, 
-    yl_idxs: torch.Tensor, 
-    beta: float = 0.1
+    beta: float = 0.1,
+    pi_logps: torch.Tensor,
+    ref_logps: torch.Tensor,
+    yl_idxs: torch.Tensor,
+    yw_idxs: torch.Tensor,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """
     DPO Objective: Increase the likelihood of yw relative to yl, weighted by 

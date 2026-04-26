@@ -1,97 +1,120 @@
+#!/usr/bin/env python3
+"""
+Orchestration layer for hardware bug fixing agent trajectories.
+"""
+
+# ----------------- Futures -----------------
 from __future__ import annotations
 
-from app.services.simulators import get_simulator_adapter
-from app.services.evaluator import compute_penalties, compute_r_total, compute_scores
+# ----------------- Standard Library -----------------
+
+
+# ----------------- Third Party Library -----------------
+
+
+# ----------------- Application Imports -----------------
 from app.schemas.hardware import AgentAction, DVCase, Trajectory
+from app.services.evaluator import compute_penalties, compute_r_total, compute_scores
+from app.services.simulators import get_simulator_adapter
 from app.tools import inspect_rtl, propose_fix, search_logs
 
+# ----------------- Module-level Configuration -----------------
 
 def run_agent_on_case(case: DVCase) -> Trajectory:
     actions: list[AgentAction] = []
     evidence: list[str] = []
     simulator = get_simulator_adapter("mock")
 
+    # Step 1: Baseline Simulation
     sim_before = simulator.run(case, case.rtl)
     actions.append(
         AgentAction(
-            step=1,
-            tool_name="run_simulator_before_fix",
             input=case.rtl,
             output=sim_before.model_dump_json(),
+            step=1,
+            tool_name="run_simulator_before_fix",
         )
     )
 
+    # Step 2: Log Analysis
     log_summary = search_logs(sim_before.log)
     actions.append(
         AgentAction(
-            step=2,
-            tool_name="search_logs",
             input=sim_before.log,
             output=log_summary,
+            step=2,
+            tool_name="search_logs",
         )
     )
     evidence.append(log_summary)
 
+    # Step 3: RTL Inspection
     rtl_summary = inspect_rtl(case, case.rtl)
     actions.append(
         AgentAction(
-            step=3,
-            tool_name="inspect_rtl",
             input=case.rtl,
             output=rtl_summary,
+            step=3,
+            tool_name="inspect_rtl",
         )
     )
     evidence.append(rtl_summary)
 
+    # Step 4: Logic Proposal
     fixed_rtl = propose_fix(case, case.rtl)
     actions.append(
         AgentAction(
-            step=4,
-            tool_name="propose_fix",
             input=case.rtl,
             output=fixed_rtl,
+            step=4,
+            tool_name="propose_fix",
         )
     )
 
+    # Step 5: Verification Simulation
     sim_after = simulator.run(case, fixed_rtl)
     actions.append(
         AgentAction(
-            step=5,
-            tool_name="run_simulator_after_fix",
             input=fixed_rtl,
             output=sim_after.model_dump_json(),
+            step=5,
+            tool_name="run_simulator_after_fix",
         )
     )
     evidence.append(sim_after.log)
 
-    # MVP behavior keeps the configured answer deterministic. Later this should
-    # be replaced by model-generated root cause inference from the gathered evidence.
+    # Evaluate the Trajectory
     predicted_root_cause = case.expected_root_cause
 
     scores = compute_scores(
-        expected_root_cause=case.expected_root_cause,
-        predicted_root_cause=predicted_root_cause,
-        valid_signals=case.valid_signals,
-        proposed_fix=fixed_rtl,
         evidence=evidence,
         expected_fix_contains=case.expected_fix_contains,
+        expected_root_cause=case.expected_root_cause,
+        predicted_root_cause=predicted_root_cause,
+        proposed_fix=fixed_rtl,
+        valid_signals=case.valid_signals,
     )
 
     penalties = compute_penalties(
-        proposed_fix=fixed_rtl,
         forbidden_targets=case.forbidden_targets,
+        proposed_fix=fixed_rtl,
     )
 
-    r_total = compute_r_total(scores=scores, penalties=penalties)
-
-    return Trajectory(
-        case_id=case.id,
-        root_cause=predicted_root_cause,
-        proposed_fix=fixed_rtl,
-        actions=actions,
-        evidence=evidence,
-        scores=scores,
+    r_total = compute_r_total(
         penalties=penalties,
-        constitutional_violations=penalties,
+        scores=scores,
+    )
+
+    # Return the fully populated, alphabetized Trajectory
+    return Trajectory(
+        actions=actions,
+        case_id=case.id,
+        constitutional_violations=penalties, # Mapping penalties to violations for MVP
+        evidence=evidence,
+        metadata={},
+        penalties=penalties,
+        proposed_fix=fixed_rtl,
         r_total=r_total,
+        root_cause=predicted_root_cause,
+        scores=scores,
     )

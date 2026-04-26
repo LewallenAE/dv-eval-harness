@@ -1,0 +1,179 @@
+[
+  {
+    "actions": [
+      {
+        "input": "module axi_source(...); ... endmodule",
+        "metadata": {},
+        "output": "{\"coverage\":89.0,\"log\":\"UVM_INFO: AXI handshake completed without protocol violations.\",\"pass_rate\":0.95,\"raw_artifacts\":{},\"simulator_name\":\"mock\"}",
+        "step": 1,
+        "tool_name": "run_simulator_before_fix"
+      },
+      {
+        "input": "UVM_INFO: AXI handshake completed without protocol violations.",
+        "metadata": {},
+        "output": "No critical simulator failures found.",
+        "step": 2,
+        "tool_name": "search_logs"
+      },
+      {
+        "input": "module axi_source(...); ... endmodule",
+        "metadata": {},
+        "output": "Case axi_handshake_bug (AXI valid drops before ready): no configured bug signature detected in RTL.",
+        "step": 3,
+        "tool_name": "inspect_rtl"
+      },
+      {
+        "input": "module axi_source(...); ... endmodule",
+        "metadata": {},
+        "output": "module axi_source(...); ... endmodule",
+        "step": 4,
+        "tool_name": "propose_fix"
+      },
+      {
+        "input": "module axi_source(...); ... endmodule",
+        "metadata": {},
+        "output": "{\"coverage\":89.0,\"log\":\"UVM_INFO: AXI handshake completed without protocol violations.\",\"pass_rate\":0.95,\"raw_artifacts\":{},\"simulator_name\":\"mock\"}",
+        "step": 5,
+        "tool_name": "run_simulator_after_fix"
+      }
+    ],
+    "case_id": "axi_handshake_bug",
+    "constitutional_violations": [],
+    "evidence": [
+      "No critical simulator failures found.",
+      "Case axi_handshake_bug (AXI valid drops before ready): no configured bug signature detected in RTL.",
+      "UVM_INFO: AXI handshake completed without protocol violations."
+    ],
+    "metadata": {},
+    "penalties": [],
+    "proposed_fix": "module axi_source(...); ... endmodule",
+    "r_total": 0.925,
+    "root_cause": "valid drops before ready in AXI-style handshake",
+    "scores": {
+      "evidence_quality": 1.0,
+      "fix_plausibility": 0.5,
+      "metadata": {},
+      "no_hallucinated_signals": 1.0,
+      "root_cause_correct": 1.0,
+      "tool_use_correctness": 1.0
+    }
+  },
+  {
+    "actions": [
+      {
+        "input": "module controller(...); ... endmodule",
+        "metadata": {},
+        "output": "{\"coverage\":87.5,\"log\":\"UVM_INFO: All checks passed.\",\"pass_rate\":0.95,\"raw_artifacts\":{},\"simulator_name\":\"mock\"}",
+        "step": 1,
+        "tool_name": "run_simulator_before_fix"
+      },
+      {
+        "input": "UVM_INFO: All checks passed.",
+        "metadata": {},
+        "output": "No critical simulator failures found.",
+        "step": 2,
+        "tool_name": "search_logs"
+      },
+      {
+        "input": "module controller(...); ... endmodule",
+        "metadata": {},
+        "output": "Case fsm_stuck_bug (FSM stuck in IDLE): no configured bug signature detected in RTL.",
+        "step": 3,
+        "tool_name": "inspect_rtl"
+      },
+      {
+        "input": "module controller(...); ... endmodule",
+        "metadata": {},
+        "output": "module controller(...); ... endmodule",
+        "step": 4,
+        "tool_name": "propose_fix"
+      },
+      {
+        "input": "module controller(...); ... endmodule",
+        "metadata": {},
+        "output": "{\"coverage\":87.5,\"log\":\"UVM_INFO: All checks passed.\",\"pass_rate\":0.95,\"raw_artifacts\":{},\"simulator_name\":\"mock\"}",
+        "step": 5,
+        "tool_name": "run_simulator_after_fix"
+      }
+    ],
+    "case_id": "fsm_stuck_bug",
+    "constitutional_violations": [],
+    "evidence": [
+      "No critical simulator failures found.",
+      "Case fsm_stuck_bug (FSM stuck in IDLE): no configured bug signature detected in RTL.",
+      "UVM_INFO: All checks passed."
+    ],
+    "metadata": {},
+    "penalties": [],
+    "proposed_fix": "module controller(...); ... endmodule",
+    "r_total": 0.925,
+    "root_cause": "blocking assignment used in sequential FSM logic",
+    "scores": {
+      "evidence_quality": 1.0,
+      "fix_plausibility": 0.5,
+      "metadata": {},
+      "no_hallucinated_signals": 1.0,
+      "root_cause_correct": 1.0,
+      "tool_use_correctness": 1.0
+    }
+  },
+  {
+    "actions": [
+      {
+        "input": "module uart_rx(...); ... endmodule",
+        "metadata": {},
+        "output": "{\"coverage\":91.0,\"log\":\"UVM_INFO: FIFO overflow protection behaved as expected.\",\"pass_rate\":0.95,\"raw_artifacts\":{},\"simulator_name\":\"mock\"}",
+        "step": 1,
+        "tool_name": "run_simulator_before_fix"
+      },
+      {
+        "input": "UVM_INFO: FIFO overflow protection behaved as expected.",
+        "metadata": {},
+        "output": "No critical simulator failures found.",
+        "step": 2,
+        "tool_name": "search_logs"
+      },
+      {
+        "input": "module uart_rx(...); ... endmodule",
+        "metadata": {},
+        "output": "Case uart_overflow_bug (UART FIFO overflow write): no configured bug signature detected in RTL.",
+        "step": 3,
+        "tool_name": "inspect_rtl"
+      },
+      {
+        "input": "module uart_rx(...); ... endmodule",
+        "metadata": {},
+        "output": "module uart_rx(...); ... endmodule",
+        "step": 4,
+        "tool_name": "propose_fix"
+      },
+      {
+        "input": "module uart_rx(...); ... endmodule",
+        "metadata": {},
+        "output": "{\"coverage\":91.0,\"log\":\"UVM_INFO: FIFO overflow protection behaved as expected.\",\"pass_rate\":0.95,\"raw_artifacts\":{},\"simulator_name\":\"mock\"}",
+        "step": 5,
+        "tool_name": "run_simulator_after_fix"
+      }
+    ],
+    "case_id": "uart_overflow_bug",
+    "constitutional_violations": [],
+    "evidence": [
+      "No critical simulator failures found.",
+      "Case uart_overflow_bug (UART FIFO overflow write): no configured bug signature detected in RTL.",
+      "UVM_INFO: FIFO overflow protection behaved as expected."
+    ],
+    "metadata": {},
+    "penalties": [],
+    "proposed_fix": "module uart_rx(...); ... endmodule",
+    "r_total": 0.925,
+    "root_cause": "UART FIFO write pointer increments while FIFO is full",
+    "scores": {
+      "evidence_quality": 1.0,
+      "fix_plausibility": 0.5,
+      "metadata": {},
+      "no_hallucinated_signals": 1.0,
+      "root_cause_correct": 1.0,
+      "tool_use_correctness": 1.0
+    }
+  }
+]
