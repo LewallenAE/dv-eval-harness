@@ -1,90 +1,93 @@
-# ⚡ DV-EVAL-HARNESS
+# dv-eval-harness
 
-## The Sovereign Silicon Intelligence Engine
+**The Sovereign Silicon Intelligence Engine**  
+*Bridging Large Language Models and Hardware Verification*
 
-### DV-Eval-Harness is a vertically integrated evaluation framework designed to bridge the gap between Large Language Models and Hardware Verification (DV). It transforms raw RTL and simulation logs into structured Agentic Trajectories, graded by a deterministic "Math Teacher" reward model, and formatted for Direct Preference Optimization (DPO).
+A vertically integrated evaluation framework that turns raw RTL and simulation logs into structured **Agentic Trajectories**, scored by a deterministic reward model and formatted for **Direct Preference Optimization (DPO)**.
 
-| | "If the code doesn't compile on the metal, the intelligence doesn't exist." | |
+> “If the code doesn’t compile on the metal, the intelligence doesn’t exist.”
 
-## 🏛️ Project Pillars
+## Project Pillars
 
-- Deterministic Rigor: 100% Pydantic-enforced schemas with strict alphabetical field ordering for predictable serialization and "No-Surprises" architecture.
-- The Trinity of Simulation: A unified adapter interface supporting Mock (Development), Icarus Verilog (Metal), and Cocotb/pyuvm (Neural Bridge).
-- Hardware-Aware Rewards: A multi-objective scalar reward function ($R_{total}$) that penalizes "hallucinated signals" and rewards functional coverage.
-- RLHF Ready: Automated generation of $(y_w, y_l)$ preference pairs for training LLMs to reason about temporal logic and protocol handshakes.
+- **Deterministic Rigor** — 100% Pydantic-enforced schemas with strict field ordering for predictable, “no-surprises” behavior.
+- **The Trinity of Simulation** — A unified adapter supporting Mock (fast iteration), Icarus Verilog (real metal), and Cocotb + pyuvm (Python-native hardware verification).
+- **Hardware-Aware Rewards** — A multi-objective scalar reward (`R_total`) that penalizes hallucinated signals and rewards functional coverage and correct root cause identification.
+- **Direct Preference Optimization (DPO) Ready** — Automatic generation of (chosen/rejected) preference pairs for training LLMs to reason about temporal logic, protocols, and hardware bugs.
 
-  
+## Tech Stack
 
-## 🛠️ The Tech Stack
+| Component       | Technology                  | Role                              |
+|-----------------|-----------------------------|-----------------------------------|
+| Orchestrator    | Python 3.12+ / FastAPI      | The nervous system                |
+| Package Manager | uv                          | High-speed dependency management  |
+| Logic Engine    | Pydantic v2                 | Structural integrity & validation |
+| Physics (Metal) | Icarus Verilog              | Binary RTL compilation            |
+| Neural Bridge   | Cocotb + pyuvm              | Pythonic hardware verification    |
+| Optimization    | PyTorch (DPO)               | Preference learning logic         |
 
-| Component |	Technology | Role |
-| :---------: | :----------: | :----: |
-| Orchestrator	| Python 3.12+ / FastAPI |	The Nervous System |
-| Package Manager |	uv | High-speed dependency isolation |
-| Logic Engine |	Pydantic V2 |	Structural Integrity & Validation |
-| Physics (Metal) |	Icarus Verilog	| Binary RTL Compilation |
-| Neural Bridge |	Cocotb / pyuvm |	Pythonic Hardware Verification |
-| Optimization |	PyTorch (DPO)	| Preference Learning Logic |
+## The Agentic Loop: Silicon → Synapse
 
-## 🚀 The Agentic Loop: "Silicon-to-Synapse"
-The harness executes a 5-step trajectory for every hardware case:
+For every hardware case, the harness executes this 5-step trajectory:
 
-1. Baseline: Run simulator on broken RTL to capture the failure signature.
+1. **Baseline** — Run simulation on broken RTL to capture the failure signature.
+2. **Analysis** — Filter logs for critical tokens (UVM_ERROR, ASSERTION FAILED, FATAL).
+3. **Inspection** — Scan RTL for configured bug signatures (FSM, protocol, buffer, etc.).
+4. **Proposal** — The agent proposes a logical fix.
+5. **Verification** — Re-run simulation to measure coverage delta and final reward.
 
-2. Analysis: Filter logs for UVM_ERROR, ASSERTION FAILED, and FATAL tokens.
+## The Deterministic “Math Teacher” Reward Model
 
-3. Inspection: Scan RTL for configured bug signatures (Protocol, FSM, or Buffer).
+We evaluate every trajectory with a weighted scalar reward:
 
-4. Proposal: The Agent (or LLM) proposes a logical fix.
+**R_total** = *w_rc*·R_root_cause + *w_eq*·R_evidence + *w_tu*·R_tool_use + *w_fp*·R_fix_plausibility + *w_nh*·R_no_hallucination − Penalties
 
-5. Verification: Re-run simulation to calculate the final Delta-Coverage and Reward.
+Penalties are applied instantly for modifying forbidden targets (scoreboards, monitors, testbenches, etc.).
 
+## Installation
 
-## 📊 The "Math Teacher" Reward Model
+**Binary Requirements (Linux/WSL):**
 
-We evaluate agents using a scalarized objective function:
-$$R_{total} = w_{rc}R_{rc} + w_{eq}R_{eq} + w_{tu}R_{tu} + w_{fp}R_{fp} + w_{nh}R_{nh} - \sum Penalties$$$R_{rc}$ 
-- (Root Cause): Did the agent identify the actual bug?
-- $R_{fp}$ (Fix Plausibility): Does the fix follow Verilog best practices (e.g., Non-blocking assignments)?
-- Penalties: Instant deductions for modifying "Forbidden Targets" like scoreboards, monitors, or testbenches.
+```bash
+sudo apt update && sudo apt install iverilog -yv
+```
 
+## Python Environment:
 
-## 📥 Installation
-Ensure you have the "Binary Requirements" installed in your WSL/Linux environment:
-
-Bash
-# Install the Metal (Icarus Verilog)
-sudo apt update && sudo apt install iverilog -y
-
-# Install the Python Nervous System
+```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 uv venv
 source .venv/bin/activate
 uv pip install -r requirements.txt
+```
 
-## 🧪 Quick Start: The Smoke Test
-To verify the harness is firing on all cylinders across AXI, FSM, and UART failure modes:
+## Quick Start:
 
-Bash
+```bash
 uv run smoke_test.py
+```
 
-### Expected Output
-🚀 [START] Launching Sovereign Verification Suite...
+### Expected Output:
 
-Processing: AXI valid drops before ready...  | R_Total: 0.93 | Correct: True
-Processing: FSM stuck in IDLE...             | R_Total: 0.93 | Correct: True
-Processing: UART FIFO overflow write...      | R_Total: 0.93 | Correct: True
+```text
+🚀 Launching Sovereign Verification Suite...
+AXI valid drops before ready...     R_Total: 0.93  ✓
+FSM stuck in IDLE...                R_Total: 0.93  ✓
+UART FIFO overflow write...         R_Total: 0.93  ✓
 
-✅ HURRAY! Suite complete. Results saved to smoke_test_results.json
+✅ Suite complete. Results saved to smoke_test_results.json
+```
 
-## 🗺️ Roadmap
-1. [ ] Supabase Handshake: Live persistence of trajectories to a cloud leaderboard.
+## Roadmap
+- Supabase integration for live trajectory leaderboard
+- Next.js dashboard for agent performance visualization
+- Large-scale DPO dataset generation for fine-tuning
+- Production Questa and VCS adapters
 
-2. [ ] Next.js Dashboard: A "TADA" visualization of agent performance over time.
 
-3. [ ] DPO Dataset Batching: Exporting 1000+ pairs for fine-tuning "Sovereign-1" models.
+**Developed by Anthony Eugene Lewallen**  
+<sub>End-to-End AI Systems Engineer [Model Internals -> MLOps + Agentic Systems]</sub>  
+<sub>From the Metal to the Agent Level</sub>
 
-Developed in the Code Cave by Anthony Eugene Lewallen. 
 
-- B.S.c Mathematics Operations Research Summa Cum Laude @ American Public University
-- MAS-CS Concentration in Software Systems / MSE-AI @ University of Pennsylvania
+B.S. Mathematics & Operations Research (Summa Cum Laude) — American Public University
+MAS-CS (Software Systems) + MSE-AI — University of Pennsylvania
