@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*.pyc
 *$py.class
 
 # Cocotb & Simulation artifacts
@@ -14,7 +15,7 @@ sim_build/
 # --- Data & Logs ---
 *.log
 backend/traces/
-smoke_test_results.json
+backend/smoke_test_results.json
 
 # Distribution / packaging
 build/
