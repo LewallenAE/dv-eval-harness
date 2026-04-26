@@ -89,5 +89,6 @@ UART FIFO overflow write...         R_Total: 0.93  ✓
 <sub>From the Metal to the Agent Level</sub>
 
 
-B.S. Mathematics & Operations Research (Summa Cum Laude) — American Public University
-MAS-CS (Software Systems) + MSE-AI — University of Pennsylvania
+B.S. Mathematics Operations Research (Summa Cum Laude) - American Public University  
+MAS-CS (Software Systems) + MSE-AI - University of Pennsylvania
+
