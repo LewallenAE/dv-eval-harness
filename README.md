@@ -48,7 +48,7 @@ Penalties are applied instantly for modifying forbidden targets (scoreboards, mo
 **Binary Requirements (Linux/WSL):**
 
 ```bash
-sudo apt update && sudo apt install iverilog -yv
+sudo apt update && sudo apt install iverilog -y
 ```
 
 ## Python Environment:
