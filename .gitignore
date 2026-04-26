@@ -1,1 +1,86 @@
-.venv
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Cocotb & Simulation artifacts
+binaries
+*.iv
+*.out
+results.xml
+sim_build/
+*.vcd
+
+# --- Data & Logs ---
+*.log
+backend/traces/
+smoke_test_results.json
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# --- Environment & Secrets ---
+.venv/
+.env
+.env.*
+!.env.example
+
+# --- Hardware Simulation (Icarus / Cocotb) ---
+sim_build/
+results.xml
+*.vcd
+*.iv
+*.out
+dump.vcd
+iverilog_dump.vcd
+
+# --- IDE & Editors ---
+.vscode/
+.history/
+.idea/
+*.swp
+*.swo
+
+# Large Json Datasets
+smoke_test_results.json
+
+#Logs
+backend/traces/
+*.log
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS Specific
+.DS_Store
+Thumbs.db
+
+# --- Python Clutter ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# VS Code
+.history/
+.vscode/

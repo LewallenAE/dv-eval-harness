@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Immutable data contracts for hardware design validation and agentic telemetry.
+Deterministic field ordering (Alphabetical) for consistent serialization.
 """
 
 # ----------------- Futures -----------------
@@ -10,7 +11,7 @@ from __future__ import annotations
 from typing import Any
 
 # ----------------- Third Party Library -----------------
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 # ----------------- Application Imports -----------------
 
@@ -25,22 +26,29 @@ class AgentAction(BaseModel):
     tool_name: str
 
 class DVCase(BaseModel):
-    bug_signature: str
-    description: str
-    expected_fix_contains: str | None = None
-    expected_root_cause: str
-    failure_coverage: float
-    failure_log: str
-    fix_replacement: str
-    forbidden_targets: list[str]
-    id: str
-    metadata: dict[str, Any] = Field(default_factory=dict)
-    rtl: str
-    success_coverage: float
-    success_log: str
-    testbench: str
-    title: str    
-    valid_signals: list[str]    
+    """
+    Schema for AXI-Lite Verification Cases. 
+    Fields are ordered alphabetically for deterministic serialization.
+    """
+    bug_signature: str = Field(..., description="The UVM or Compiler error string.")
+    description: str = Field(..., description="High-level overview of the failure mode.")
+    expected_fix_contains: str = Field(..., description="Substring required in the passing fix.")
+    expected_root_cause: str = Field(..., description="The logical explanation of the bug.")
+    failure_coverage: float = Field(0.0, description="Functional coverage achieved by the buggy code.")
+    failure_log: str = Field(..., description="Simulation log output showing the failure.")
+    fix_replacement: str = Field(..., description="The corrected RTL code block.")
+    forbidden_targets: list[str] = Field(default_factory=list, description="Signals the agent is NOT allowed to modify.")
+    id: str = Field(..., description="Unique slug (e.g., 'AXI_LITE_001').")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Channel and bug type tags.")
+    model_config = ConfigDict(populate_by_name=True)
+    rtl: str = Field(..., description="The buggy Verilog/SystemVerilog source code.")
+    success_coverage: float = Field(100.0, description="Target functional coverage for the fix.")
+    success_log: str = Field(..., description="Simulation log output showing a successful run.")
+    testbench: str = Field(..., description="The UVM/SystemVerilog task or sequence used for stimulus.") 
+    title: str = Field(..., description="Human-readable title of the verification case.")
+    valid_signals: list[str] = Field(default_factory=list, description="List of monitored signals for scoring.")
+
+   
 
 class EvaluationScores(BaseModel):
     evidence_quality: float = Field(ge=0.0, le=1.0)

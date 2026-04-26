@@ -1,0 +1,22 @@
+[
+  {
+    "id": "fifo_full_overflow",
+    "title": "Synchronous FIFO Overflow Bug",
+    "description": "The FIFO fails to block writes when the full flag is high.",
+    "bug_signature": "assign full = (count == DEPTH - 1); // Should be == DEPTH",
+    "expected_fix_contains": "count == DEPTH",
+    "expected_root_cause": "Off-by-one error in full-flag logic allows an extra write that overwrites the first entry.",
+    "rtl": "module sync_fifo #(parameter DEPTH=16) (\n  input clk, rst_n, wr_en, rd_en,\n  output full, empty\n);\n  // ... FIFO Logic ...\n  assign full = (count == DEPTH - 1);\nendmodule",
+    "valid_signals": ["clk", "rst_n", "wr_en", "full", "count"]
+  },
+  {
+    "id": "fifo_empty_underflow",
+    "title": "Synchronous FIFO Underflow Bug",
+    "description": "The FIFO asserts empty even when one element remains.",
+    "bug_signature": "assign empty = (count <= 1);",
+    "expected_fix_contains": "count == 0",
+    "expected_root_cause": "Premature empty flag assertion prevents the last byte from being read.",
+    "rtl": "module sync_fifo ... // RTL logic\nendmodule",
+    "valid_signals": ["clk", "rd_en", "empty", "count"]
+  }
+]

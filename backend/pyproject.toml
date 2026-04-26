@@ -1,9 +1,15 @@
 [project]
-name = "backend"
+name = "dv-eval-harness"
 version = "0.1.0"
-description = "Add your description here"
+description = "Design Validation Evaluation Harness"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "cocotb>=2.0.1",
     "fastapi>=0.136.1",
+    "pydantic>=2.13.3",
+    "python-dotenv>=1.2.2",
+    "pyuvm>=4.0.1",
+    "supabase>=2.29.0",
+    "uvicorn[standard]>=0.46.0",
 ]
