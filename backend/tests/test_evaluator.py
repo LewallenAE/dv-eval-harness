@@ -4,7 +4,6 @@ import pytest
 
 from app.services.evaluator import (
     REWARD_WEIGHTS,
-    VALID_TOOLS,
     compute_penalties,
     compute_prm_scores,
     compute_r_total,

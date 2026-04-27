@@ -12,7 +12,6 @@ import os
 import shutil
 from datetime import datetime, UTC
 from pathlib import Path
-from typing import Any
 
 # ----------------- Third Party Library -----------------
 

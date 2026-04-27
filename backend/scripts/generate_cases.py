@@ -7,15 +7,15 @@
 from __future__ import annotations
 
 # ----------------- Standard Library -----------------
-import json
 import glob
-from pathylib import Path
+import json
+from pathlib import Path
 
 # ----------------- Third Party Library -----------------
 
 
 # ----------------- Application Imports -----------------
-from app,schemas.hardware import DVCase
+from app.schemas.hardware import parse_dv_case
 
 # ----------------- Module-level Configuration -----------------
 
@@ -24,11 +24,13 @@ def load_all_blueprints(directory: str) -> list:
     all_data = []
     files = glob.glob(f"{directory}/*.json")
     for file in files:
-        with open(file, 'r') as f:
+        if Path(file).stat().st_size == 0:
+            continue
+        with open(file, "r", encoding="utf-8") as f:
             all_data.extend(json.load(f))
     return all_data
 
-def run_forge():
+def run_forge() -> None:
     # 1. Separation of concerns: The data lives in data/blueprints
     raw_blueprints = load_all_blueprints("data/blueprints")
 
@@ -37,7 +39,7 @@ def run_forge():
 
     for blueprint in raw_blueprints:
 
-        case = DVCase(**blueprint)
+        case = parse_dv_case(blueprint)
 
         case_path = output_dir / f"{case.id}.json"
         case_path.write_text(case.model_dump_json(indent=2))
