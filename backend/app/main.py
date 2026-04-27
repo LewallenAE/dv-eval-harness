@@ -16,7 +16,7 @@ from fastapi import FastAPI, HTTPException
 
 # ----------------- Application Imports -----------------
 from app.api.v1.eval import router as eval_router
-from app.schemas.hardware import DVCase, Trajectory
+from app.schemas.hardware import DVCase, Trajectory, parse_dv_case
 from app.services.agent_runner import run_agent_on_case
 from app.storage import save_eval_run, get_eval_runs
 
@@ -38,7 +38,7 @@ def load_case(case_id: str) -> DVCase:
     case_path = CASES_DIR / f"{case_id}.json"
     if not case_path.exists():
         raise HTTPException(status_code=404, detail="Case not found")
-    return DVCase(**json.loads(case_path.read_text(encoding="utf-8")))
+    return parse_dv_case(json.loads(case_path.read_text(encoding="utf-8")))
 
 @app.get("/")
 def root() -> dict[str, str]:
@@ -54,10 +54,7 @@ def run_case(case_id: str) -> Trajectory:
     trajectory = run_agent_on_case(case)
 
     # Persist the trace to the local .jsonl store
-    with TRACE_FILE.open("a", encoding="utf-8") as trace_handle:
-        case = load_case(case_id)
-        trajectory = run_agent_on_case(case)
-        save_eval_run(trajectory.model_dump())
+    save_eval_run(trajectory.model_dump())
     return trajectory
 
 @app.get("/traces")

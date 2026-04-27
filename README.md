@@ -51,31 +51,37 @@ Penalties are applied instantly for modifying forbidden targets (scoreboards, mo
 sudo apt update && sudo apt install iverilog -y
 ```
 
-## Python Environment:
+## Python Environment
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-uv venv
-source .venv/bin/activate
-uv pip install -r requirements.txt
+cd backend
+uv sync
 ```
 
-## Quick Start:
+## Quick Start
 
 ```bash
 uv run smoke_test.py
+uv run pytest
 ```
 
-### Expected Output:
+### Expected Smoke Output
 
 ```text
-🚀 Launching Sovereign Verification Suite...
-AXI valid drops before ready...     R_Total: 0.93  ✓
-FSM stuck in IDLE...                R_Total: 0.93  ✓
-UART FIFO overflow write...         R_Total: 0.93  ✓
+🚀 [START] Launching Sovereign Verification Suite...
+AXI valid drops before ready...     R_Total: 0.99  ✓
+FSM stuck in IDLE...                R_Total: 0.99  ✓
+UART FIFO overflow write...         R_Total: 0.98  ✓
 
-✅ Suite complete. Results saved to smoke_test_results.json
+✅ HURRAY! Suite complete. Results saved to smoke_test_results.json
 ```
+
+## Configuration
+
+Supabase is optional for local development. If `SUPABASE_URL` and
+`SUPABASE_SERVICE_ROLE_KEY` are unset, evaluation traces are written to
+`backend/eval_runs.jsonl`.
 
 ## Roadmap
 - Supabase integration for live trajectory leaderboard
@@ -91,4 +97,3 @@ UART FIFO overflow write...         R_Total: 0.93  ✓
 
 B.S. Mathematics Operations Research (Summa Cum Laude) - American Public University  
 MAS-CS (Software Systems) + MSE-AI - University of Pennsylvania
-
