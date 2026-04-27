@@ -118,11 +118,11 @@ Built as a focused demonstration of the eval harness layer for DV agents. Archit
 ---
 
 **Anthony Eugene Lewallen**
-End-to-End AI Systems Engineer · Model Internals → MLOps + Agentic Systems
+End-to-End AI Systems Engineer · Model Internals → MLOps + Agentic Systems  
 *From the Metal to the Agent Level*
 
 B.S. Mathematics Operations Research, Summa Cum Laude — American Public University  
 MAS-CS (Software Systems) + MSE-AI — University of Pennsylvania    
   
-  
+
 6,000+ hours RLHF · adversarial evaluation @ Snorkel AI · top-tier @ Alignerr
