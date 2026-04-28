@@ -135,4 +135,4 @@ B.S. Mathematics Operations Research, Summa Cum Laude — American Public Univer
 MAS-CS (Software Systems) + MSE-AI — University of Pennsylvania    
   
 
-6,000+ hours RLHF · adversarial evaluation @ Snorkel AI · top-tier @ Alignerr
+
