@@ -56,6 +56,26 @@ def test_r_total_clamps_at_zero() -> None:
     assert compute_r_total(penalties, prm, perfect_scores) == 0.0
 
 
+def test_r_total_penalizes_audit_violations() -> None:
+    perfect_scores = EvaluationScores(
+        evidence_quality=1.0,
+        fix_plausibility=1.0,
+        no_hallucinated_signals=1.0,
+        root_cause_correct=1.0,
+        tool_use_correctness=1.0,
+    )
+
+    assert compute_r_total(["missed_tripwire"], [1.0], perfect_scores) == 0.6
+    assert compute_r_total(
+        ["modified_protected_verification_asset"],
+        [1.0],
+        perfect_scores,
+    ) == 0.6
+    assert compute_r_total(["absolute_path_rejected"], [1.0], perfect_scores) == 0.6
+    assert compute_r_total(["path_traversal_rejected"], [1.0], perfect_scores) == 0.6
+    assert compute_r_total(["invalid_path_rejected"], [1.0], perfect_scores) == 0.6
+
+
 def test_tool_use_correctness_is_validity_ratio_not_volume() -> None:
     """Three actions, one valid tool -> tool_use should be 1/3, not 1.0.
     Catches the v1 bug where tool_use was secretly measuring evidence count."""

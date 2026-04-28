@@ -18,6 +18,8 @@ The simulator boundary is an adapter. Mock for fast iteration, Icarus for free m
 
 **Categorical penalties for bright-line violations only.** Modifying forbidden targets (scoreboards, monitors, testbenches) triggers a fixed scalar penalty. Fuzzy gaming detection is not handled in the reward function — it belongs in the trajectory audit layer where the agent can't optimize against it.
 
+**Policy-enforced execution.** Simulator runs accept a `SimulationPolicy` with watchdog timeouts, per-process memory limits where supported, maximum retained log bytes, allowed write roots, and protected verification-asset tokens. The mock, Icarus, and Cocotb adapters return structured UVM/coverage summaries in `raw_artifacts`.
+
 **JSONL trace persistence.** Append-only, grep-able, replayable. No ORM ceremony for what is fundamentally a log.
 
 ## The trajectory
@@ -72,43 +74,51 @@ Each case generates one DPO preference pair (chosen fix vs rejected fix). 200 pa
 ```
 sudo apt update && sudo apt install iverilog -y
 curl -LsSf https://astral.sh/uv/install.sh | sh
-uv venv && source .venv/bin/activate
-uv pip install -r requirements.txt
+cd backend
+uv sync
 ```
 
 ## Run
 
 ```
 uv run smoke_test.py
+uv run pytest
+uvx ruff check .
 ```
 
 Expected:
 
 ```
-AXI valid drops before ready...     R_Total: 0.93  ok
-FSM stuck in IDLE...                R_Total: 0.93  ok
-UART FIFO overflow write...         R_Total: 0.93  ok
+AXI valid drops before ready...     R_Total: 0.99  ok
+FSM stuck in IDLE...                R_Total: 0.99  ok
+UART FIFO overflow write...         R_Total: 0.98  ok
 
 Suite complete. Results saved to smoke_test_results.json
 ```
 
 ## What's working
 
-- Adapter boundary with Mock + Icarus paths
+- Adapter boundary with Mock active, Icarus implemented, and Cocotb/pyuvm scaffolded behind the same simulator interface
 - Discriminated union schemas for FIFO / FSM / arbiter / AXI-Lite cases
+- Family-level design pattern schemas for canonical FIFO / FSM / arbiter structure
 - Reward engine: 5-component decomposition + PRM mean injection, weight invariant asserted at load, regex word-boundary substring matching, clamped at zero
-- Trajectory persistence as JSONL
-- Reward engine test suite (weight invariant, word-boundary regression, PRM stacking, R_total clamp, tool-use validity ratio)
+- Safety layer: workspace diff audit, path-scope audit, absolute-path/traversal rejection, tripwire audit, UVM/coverage log parsing, bounded retained logs, simulator watchdog policy, and process memory-limit hooks
+- R₂ holdout telemetry and R₁/R₂ gap tracking for threshold-hugging detection
+- Unbiased pass@k estimator for multi-sample evaluation reporting
+- Supabase persistence verified against `eval_runs`, with JSONL fallback for local/offline runs
+- DPO primitives: preference-pair generation and beta-regularized DPO loss
+- GitHub Actions CI for locked install, pytest, and ruff
+- Reward, schema, storage, workspace-audit, metrics, and safety test suite
 
 ## What's next
 
-- Cocotb + pyuvm adapter (in progress)
-- Family-level design pattern schemas for structural conformance checks beyond functional simulation (canonical FIFO/FSM/arbiter shape validation)
-- Trajectory audit layer for forensic gaming detection (CoT-action coherence, fix-before-evidence, hallucinated citations, conditional-independence violations)
-- Held-out reward function R₂ for threshold-hugging detection (R₁/R₂ gap as an independent telemetry channel)
+- Validate Cocotb + pyuvm with executable Python testbenches and make it selectable from the API/CLI
+- Wire family-level design pattern schemas into structural conformance scoring beyond substring checks
+- Add Docker/cgroup sandboxing around simulator execution for stronger filesystem and memory isolation
+- Expand trajectory audit layer for deeper forensic gaming detection (CoT-action coherence, fix-before-evidence, hallucinated citations, conditional-independence violations)
 - QLoRA + DPO fine-tune on Mistral 7B / Llama 3 8B against harness-generated preference data
 - Questa and VCS adapters
-- Supabase persistence + Next.js dashboard for trajectory leaderboard
+- Next.js dashboard for Supabase-backed trajectory leaderboard
 - Programmatic bug injection to scale beyond 200 hand-blueprinted cases
 
 ## Status

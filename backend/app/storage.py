@@ -20,11 +20,10 @@ from supabase import Client, create_client
 
 
 # ----------------- Module-level Configuration -----------------
-load_dotenv()
-
-
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 LOCAL_STORE = BACKEND_DIR / "eval_runs.jsonl"
+
+load_dotenv(BACKEND_DIR / ".env")
 
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -33,6 +32,22 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 supabase: Client | None = None
 if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
     supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+
+def _to_eval_run_row(data: dict[str, Any]) -> dict[str, Any]:
+    """Map a trajectory dump to the Supabase eval_runs table shape."""
+    return {
+        "actions": data.get("actions", []),
+        "case_id": data["case_id"],
+        "constitutional_violations": data.get("constitutional_violations", []),
+        "evidence": data.get("evidence", []),
+        "metadata": data.get("metadata", {}),
+        "penalties": data.get("penalties", []),
+        "proposed_fix": data.get("proposed_fix", ""),
+        "r_total": data["r_total"],
+        "root_cause": data.get("root_cause", ""),
+        "scores": data.get("scores", {}),
+    }
 
 
 def _read_local_runs() -> list[dict[str, Any]]:
@@ -49,16 +64,17 @@ def _read_local_runs() -> list[dict[str, Any]]:
 
 def save_eval_run(data: dict[str, Any]) -> None:
     """Persist one evaluated trajectory."""
+    row = _to_eval_run_row(data)
     if supabase is not None:
         try:
-            supabase.table("eval_runs").insert(data).execute()
+            supabase.table("eval_runs").insert(row).execute()
             return
         except Exception:
             # Local evaluation must remain usable if the remote schema is stale.
             pass
 
     with LOCAL_STORE.open("a", encoding="utf-8") as store:
-        store.write(json.dumps(data, sort_keys=True) + "\n")
+        store.write(json.dumps(row, sort_keys=True) + "\n")
 
 def get_eval_runs() -> list[dict[str, Any]]:
     """Return most recent eval runs first."""

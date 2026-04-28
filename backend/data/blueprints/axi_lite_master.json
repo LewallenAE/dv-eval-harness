@@ -358,7 +358,7 @@
     "forbidden_targets": ["gnt"],
     "valid_signals": ["gnt", "req"],
     "metadata": {"channel": "ARB", "bug_type": "Protocol"}
-  }
+  },
   {
     "id": "AXI_LITE_021",
     "title": "Read Address (AR) Handshake Violation",

@@ -18,6 +18,14 @@ from pathlib import Path
 
 # ----------------- Application Imports -----------------
 from app.schemas.hardware import AgentAction, DVCase, EvaluationScores, Trajectory
+from app.services.metrics import compute_r2_holdout_score
+from app.services.safety import (
+    DEFAULT_SIMULATION_POLICY,
+    SimulationPolicy,
+    audit_modified_paths,
+    audit_tripwire_claim,
+    parse_simulation_log,
+)
 from app.services.evaluator import (
     compute_penalties,
     compute_prm_scores,
@@ -27,6 +35,7 @@ from app.services.evaluator import (
 from app.services.simulators import get_simulator_adapter
 from app.storage import save_eval_run
 from app.tools import inspect_rtl, propose_fix, search_logs
+from app.services.workspace_audit import diff_workspace, snapshot_workspace
 
 # ----------------- Module-level Configuration -----------------
 
@@ -126,20 +135,26 @@ include $(shell cocotb-config --makefiles)/Makefile.sim
                 shutil.rmtree(work_dir)
 
 
-def run_agent_on_case(case: DVCase) -> Trajectory:
+def run_agent_on_case(
+    case: DVCase,
+    policy: SimulationPolicy = DEFAULT_SIMULATION_POLICY,
+    simulator_name: str = "mock",
+) -> Trajectory:
     """
     Run the deterministic local agent loop for a configured DV case.
 
     This is the synchronous path used by the API and smoke tests. It keeps the
     default harness fast and deterministic by using the mock simulator adapter.
     """
-    simulator = get_simulator_adapter("mock")
+    simulator = get_simulator_adapter(simulator_name)
 
-    baseline = simulator.run(case, case.rtl)
+    baseline = simulator.run(case, case.rtl, policy=policy)
     evidence_summary = search_logs(baseline.log)
     inspection = inspect_rtl(case, case.rtl)
     proposed_fix = propose_fix(case, case.rtl)
-    verification = simulator.run(case, proposed_fix)
+    verification = simulator.run(case, proposed_fix, policy=policy)
+    baseline_summary = parse_simulation_log(baseline.log)
+    verification_summary = parse_simulation_log(verification.log)
 
     actions = [
         AgentAction(
@@ -168,7 +183,31 @@ def run_agent_on_case(case: DVCase) -> Trajectory:
         ),
     ]
     evidence = [baseline.log, evidence_summary, verification.log]
-    penalties = compute_penalties(case.forbidden_targets, proposed_fix)
+    declared_modified_paths = case.metadata.get("modified_paths")
+    if declared_modified_paths is None:
+        workspace = Path("/tmp/dv_eval_workspace_audit") / case.id
+        if workspace.exists():
+            shutil.rmtree(workspace)
+        hdl_dir = workspace / "hdl"
+        hdl_dir.mkdir(parents=True)
+        dut_path = hdl_dir / "dut.v"
+        dut_path.write_text(case.rtl, encoding="utf-8")
+        before_snapshot = snapshot_workspace(workspace)
+        dut_path.write_text(proposed_fix, encoding="utf-8")
+        modified_paths = diff_workspace(before_snapshot, snapshot_workspace(workspace))
+        shutil.rmtree(workspace)
+    else:
+        modified_paths = [str(path) for path in declared_modified_paths]
+    penalties = [
+        *compute_penalties(case.forbidden_targets, proposed_fix),
+        *audit_modified_paths(modified_paths, policy),
+        *audit_tripwire_claim(
+            case=case,
+            policy=policy,
+            reported_root_cause=case.expected_root_cause,
+            verification_passed=verification.pass_rate > 0.0,
+        ),
+    ]
     prm_scores = compute_prm_scores(actions)
     scores = compute_scores(
         actions=actions,
@@ -181,6 +220,7 @@ def run_agent_on_case(case: DVCase) -> Trajectory:
         valid_signals=case.valid_signals,
     )
     r_total = compute_r_total(penalties, prm_scores, scores)
+    r2_holdout = compute_r2_holdout_score(penalties, scores)
 
     return Trajectory(
         actions=actions,
@@ -189,8 +229,14 @@ def run_agent_on_case(case: DVCase) -> Trajectory:
         evidence=evidence,
         metadata={
             "baseline_coverage": baseline.coverage,
+            "baseline_uvm_summary": baseline_summary.model_dump(),
+            "modified_paths": modified_paths,
+            "policy": policy.model_dump(),
+            "r1_r2_gap": round(r_total - r2_holdout, 4),
+            "r2_holdout": r2_holdout,
             "simulator": verification.simulator_name,
             "success_coverage": verification.coverage,
+            "verification_uvm_summary": verification_summary.model_dump(),
         },
         penalties=penalties,
         proposed_fix=proposed_fix,

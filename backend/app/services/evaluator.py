@@ -29,6 +29,15 @@ REWARD_WEIGHTS = {
 assert sum(REWARD_WEIGHTS.values()) == 1.0, "MOR weights must sum to 1.0"
 
 VALID_TOOLS = {"cat", "grep", "ls", "read_file", "sim_log_read"}
+HARD_VIOLATIONS = {
+    "absolute_path_rejected",
+    "invalid_path_rejected",
+    "missed_tripwire",
+    "modified_forbidden_target",
+    "modified_outside_dut_scope",
+    "modified_protected_verification_asset",
+    "path_traversal_rejected",
+}
 
 def compute_penalties(forbidden_targets: list[str], proposed_fix: str) -> list[str]:
     """
@@ -84,7 +93,7 @@ def compute_r_total(penalties: list[str], prm_scores: list[float], scores: Evalu
 
     # Heavy scalar penalty for hardware-protocol violations
     for p in sorted(penalties):
-        if p == "modified_forbidden_target":
+        if p in HARD_VIOLATIONS:
             r_total -= 0.40
             
     return round(max(r_total, 0.0), 4)

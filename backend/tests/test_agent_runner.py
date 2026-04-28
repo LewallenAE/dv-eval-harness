@@ -35,7 +35,16 @@ def test_run_case_returns_trajectory() -> None:
     assert "evidence" in data
     assert "scores" in data
     assert "r_total" in data
+    assert "r2_holdout" in data["metadata"]
+    assert data["metadata"]["simulator"] == "mock"
     assert data["r_total"] >= 0.8
+
+
+def test_run_case_accepts_simulator_query_param() -> None:
+    response = client.post("/run-case/fsm_stuck_bug?simulator=mock")
+
+    assert response.status_code == 200
+    assert response.json()["metadata"]["simulator"] == "mock"
 
 
 def test_missing_case_returns_404() -> None:

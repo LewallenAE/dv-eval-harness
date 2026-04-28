@@ -49,9 +49,9 @@ def list_cases() -> list[str]:
     return sorted(case_path.stem for case_path in CASES_DIR.glob("*.json"))
 
 @app.post("/run-case/{case_id}", response_model=Trajectory)
-def run_case(case_id: str) -> Trajectory:
+def run_case(case_id: str, simulator: str = "mock") -> Trajectory:
     case = load_case(case_id)
-    trajectory = run_agent_on_case(case)
+    trajectory = run_agent_on_case(case, simulator_name=simulator)
 
     # Persist the trace to the local .jsonl store
     save_eval_run(trajectory.model_dump())
