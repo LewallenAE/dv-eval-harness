@@ -29,7 +29,7 @@ def get_test_cases() -> list[DVCase]:
     ]
 
 def main():
-    print("🚀 [START] Launching Sovereign Verification Suite...")
+    print("🚀 [START] Launching Verification Suite...")
     
     cases = get_test_cases()
     results = []
