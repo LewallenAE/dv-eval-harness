@@ -112,6 +112,7 @@ Suite complete. Results saved to smoke_test_results.json
 
 ## What's next
 
+- **Agent/model adapter at the prompt boundary.** Same pattern as the simulator adapter, applied one layer up: uniform interface for Anthropic, OpenAI, local-vLLM, or customer-deployed on-prem models. Decouples eval loop from model runtime, matches the "bring-your-own-model" architectural pattern that enterprise customers require for IP-sensitive deployments.
 - Validate Cocotb + pyuvm with executable Python testbenches and make it selectable from the API/CLI
 - Wire family-level design pattern schemas into structural conformance scoring beyond substring checks
 - Add Docker/cgroup sandboxing around simulator execution for stronger filesystem and memory isolation
