@@ -1,0 +1,30 @@
+{
+  "id": "FSM_LATCH_014",
+  "title": "Moore Output Latch Inferred \u2014 if Without else",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "BUSY"
+  ],
+  "has_default_case": false,
+  "bug_signature": "VCS-WARNING: Latch inferred for 'ready'; non-IDLE states leave ready undriven in always_comb",
+  "rtl": "always_comb\n  if (state == IDLE) ready = 1'b1;  // No else \u2014 latch inferred for non-IDLE",
+  "testbench": "initial begin state = IDLE; #10 state = BUSY; end",
+  "expected_root_cause": "The always_comb block assigns ready only when state==IDLE with no else branch to cover remaining states; synthesis infers a latch to hold ready at its last driven value whenever the FSM is not in IDLE.",
+  "expected_fix_contains": "ready = 1'b0",
+  "fix_replacement": "always_comb begin\n  ready = 1'b0;  // Default: not ready\n  if (state == IDLE) ready = 1'b1;\nend",
+  "description": "The output ready is assigned only inside an if (state == IDLE) block with no else branch; synthesis infers a latch to hold the previous ready value for all non-IDLE states.",
+  "failure_log": "VCS-WARNING: Latch inferred for 'ready'; non-IDLE states leave ready undriven in always_comb",
+  "success_log": "No latch. ready=0 in all non-IDLE states. ready=1 only in IDLE.",
+  "valid_signals": [
+    "ready",
+    "state"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 10.0,
+  "success_coverage": 100.0
+}

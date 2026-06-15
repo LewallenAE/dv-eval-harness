@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_040",
+  "title": "Read-After-Write (RAW) Hazard in FIFO",
+  "description": "Read request to an address currently in the Write FIFO returns stale data from the memory.",
+  "bug_signature": "UVM_ERROR: [SBD_DATA] Expected 0xAAAA (from FIFO), Got 0x0000 (from RAM)",
+  "expected_root_cause": "The Crossbar lacks 'Store-to-Load Forwarding' logic or a hazard detection stall [31, 32].",
+  "expected_fix_contains": "if (rd_addr == wr_fifo_addr) rdata = wr_fifo_data",
+  "failure_coverage": 35.0,
+  "success_coverage": 95.0,
+  "failure_log": "Write 0x1000 = 0xAAAA (In Progress)\nRead 0x1000 = 0x0000\nUVM_ERROR: Coherency violation.",
+  "success_log": "Read request stalled until Write FIFO drains or data forwarded.",
+  "rtl": "assign rdata = ram_out;",
+  "fix_replacement": "assign rdata = (raw_hit) ? wr_data_bypass : ram_out;",
+  "testbench": "task run(); fork drive_write(0x1, 0xA); drive_read(0x1); join endtask",
+  "forbidden_targets": [
+    "ram_out"
+  ],
+  "valid_signals": [
+    "rdata",
+    "wr_data_bypass"
+  ],
+  "metadata": {
+    "channel": "R",
+    "bug_type": "Concurrency"
+  }
+}

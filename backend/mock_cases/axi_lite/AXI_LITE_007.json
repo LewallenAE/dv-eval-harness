@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_007",
+  "title": "BVALID Held High After BREADY Handshake",
+  "description": "After a successful B-channel handshake (BVALID=1 && BREADY=1), BVALID is not cleared, causing the master to misinterpret the next cycle as a second write response.",
+  "bug_signature": "UVM_ERROR: [AXI_PROT_CHECK] Duplicate BVALID detected \u2014 no new write in progress",
+  "expected_root_cause": "The BVALID clear logic is missing its enable condition; it only sets BVALID but never clears it after the handshake [1, 9].",
+  "expected_fix_contains": "if (bvalid && bready) bvalid <= 0",
+  "failure_coverage": 60.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=100: BVALID=1, BREADY=1 (handshake OK)\nT=110: BVALID=1 (stuck)\nUVM_ERROR: Spurious BVALID.",
+  "success_log": "BVALID cleared on posedge clk following BREADY handshake.",
+  "rtl": "always_ff @(posedge clk) if (wr_done) bvalid <= 1;",
+  "fix_replacement": "always_ff @(posedge clk) begin if (!rst_n) bvalid <= 0; else if (wr_done) bvalid <= 1; else if (bvalid && bready) bvalid <= 0; end",
+  "testbench": "task run(); drive_write(); @(posedge clk iff bvalid && bready); @(posedge clk); assert(bvalid == 0); endtask",
+  "forbidden_targets": [
+    "bready"
+  ],
+  "valid_signals": [
+    "bvalid",
+    "bready"
+  ],
+  "metadata": {
+    "channel": "B",
+    "bug_type": "Handshake"
+  }
+}

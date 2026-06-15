@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_029",
+  "title": "Sequential Grant Priority Encoder Race Condition",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 10,
+  "sticky_until": "ready",
+  "bug_signature": "UVM_ERROR: [PRIO_INV] Master 0 granted when Master 1 had higher round-robin priority",
+  "rtl": "always_ff @(posedge clk)\n  if (req[1]) gnt <= 2'b10;  // Single master check \u2014 misses concurrent req[0]",
+  "testbench": "initial begin #10 req[5]=1; end",
+  "expected_root_cause": "The single-master check (if req[1]) in the always_ff block does not evaluate concurrent req[0]; when both masters request simultaneously only master 1 is considered and master 0 is never granted in that cycle.",
+  "expected_fix_contains": "always_comb begin\n  gnt_next = 2'b00",
+  "fix_replacement": "always_comb begin\n  gnt_next = 2'b00;\n  if      (last_gnt == 1'b0 && req[1]) gnt_next = 2'b10;\n  else if (last_gnt == 1'b0 && req[0]) gnt_next = 2'b01;\n  else if (last_gnt == 1'b1 && req[0]) gnt_next = 2'b01;\n  else if (last_gnt == 1'b1 && req[1]) gnt_next = 2'b10;\nend\nalways_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) gnt <= 2'b00;\n  else        gnt <= gnt_next;",
+  "description": "A sequential priority encoder updates gnt in the clock after req is sampled, causing a two-cycle latency; a concurrent request from a higher-priority master wins the second cycle, producing a priority inversion.",
+  "failure_log": "UVM_ERROR: [PRIO_INV] Master 0 granted when Master 1 had higher round-robin priority",
+  "success_log": "Round-robin priority correct for all concurrent request combinations.",
+  "valid_signals": [
+    "gnt",
+    "gnt_next",
+    "req",
+    "last_gnt"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 30.0,
+  "success_coverage": 100.0
+}

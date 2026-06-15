@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_026",
+  "title": "Reset Synchronizer Missing \u2014 Glitch on rst_n Pulse",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 1,
+  "sticky_until": "ready",
+  "bug_signature": "UVM_ERROR: [META] gnt=4'bxxxx after short rst_n pulse; partial reset state",
+  "rtl": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) gnt <= 4'h0;  // rst_n pulse < 1 clk period causes partial reset",
+  "testbench": "initial begin #50 force rst_n = 0; #1 release rst_n; end",
+  "expected_root_cause": "The active-low reset rst_n is used asynchronously without a synchronizer; a reset pulse shorter than one clock period releases before the grant register can complete its reset, leaving gnt in a partially-reset garbage state.",
+  "expected_fix_contains": "rst_q1 <= rst_n",
+  "fix_replacement": "// Synchronize rst_n into clk domain\nalways_ff @(posedge clk) begin\n  rst_q1 <= rst_n;\n  rst_q2 <= rst_q1;\nend\nalways_ff @(posedge clk)\n  if (!rst_q2) gnt <= 4'h0;\n  else         gnt <= next_gnt;",
+  "description": "An asynchronous rst_n pulse shorter than one clock period releases before the grant register can cleanly reset, causing gnt to land in a mid-reset garbage state.",
+  "failure_log": "UVM_ERROR: [META] gnt=4'bxxxx after short rst_n pulse; partial reset state",
+  "success_log": "Synchronized reset: gnt cleanly zero after rst_n pulse regardless of pulse width.",
+  "valid_signals": [
+    "gnt",
+    "rst_n",
+    "rst_q1",
+    "rst_q2"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 10.0,
+  "success_coverage": 100.0
+}

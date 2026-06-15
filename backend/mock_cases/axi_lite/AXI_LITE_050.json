@@ -1,0 +1,25 @@
+{
+  "id": "AXI_LITE_050",
+  "title": "Scoreboard Mismatch (Incorrect Predictor)",
+  "description": "UVM Scoreboard incorrectly expects data 0x0 from address 0x1000 after a write of 0x55, due to a bug in the verification model.",
+  "bug_signature": "UVM_ERROR: [SBD_COMP] Mismatch! Expected 0x0, Got 0x55",
+  "expected_root_cause": "The UVM Predictor (reference model) did not update its internal RAM model during the Write phase [44, 45].",
+  "expected_fix_contains": "ref_mem[addr] = tr.data",
+  "failure_coverage": 0.0,
+  "success_coverage": 100.0,
+  "failure_log": "RTL is correct (wrote 0x55). Scoreboard predictor is stuck at 0x0.",
+  "success_log": "Predictor updated; Scoreboard matches RTL output.",
+  "rtl": "No RTL change needed.",
+  "fix_replacement": "virtual function void write_w(ubus_transfer tr); model_mem[tr.addr] = tr.data; endfunction",
+  "testbench": "task run(); drive_write(0x1000, 0x55); drive_read(0x1000); endtask",
+  "forbidden_targets": [
+    "wdata"
+  ],
+  "valid_signals": [
+    "rdata"
+  ],
+  "metadata": {
+    "channel": "GEN",
+    "bug_type": "UVM"
+  }
+}

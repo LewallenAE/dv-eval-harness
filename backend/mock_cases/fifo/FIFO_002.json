@@ -1,0 +1,26 @@
+{
+  "id": "FIFO_002",
+  "title": "FIFO Pop-on-Empty Corruption",
+  "description": "Read pointer increments even when the empty flag is high.",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 8,
+  "depth": 8,
+  "pointer_width": 4,
+  "bug_signature": "UVM_ERROR: [SBD_SIZE] Scoreboard empty but RTL performed Read",
+  "expected_root_cause": "The read enable logic is not gated by the !empty signal [1].",
+  "expected_fix_contains": "if (rd_en && !empty) rd_ptr <= rd_ptr + 1;",
+  "rtl": "always_ff @(posedge clk) if (rd_en) rd_ptr <= rd_ptr + 1;",
+  "testbench": "task run(); rd_en <= 1; #10; endtask",
+  "failure_log": "Empty=1. rd_ptr rose to 1. Output=X.",
+  "success_log": "Read pointer stable when Empty is high.",
+  "fix_replacement": "if (rd_en && !empty) rd_ptr <= rd_ptr + 1;",
+  "forbidden_targets": [
+    "wr_ptr"
+  ],
+  "valid_signals": [
+    "empty",
+    "rd_en",
+    "rd_ptr"
+  ]
+}

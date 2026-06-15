@@ -1,0 +1,25 @@
+{
+  "id": "FSM_015",
+  "title": "FSM Illegal Sequential Assignment",
+  "description": "FSM uses continuous assign for state update instead of always_ff.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "VCS-ERROR: Multiple drivers on signal 'state'",
+  "expected_root_cause": "The state variable is driven by both an 'assign' statement and an 'always_ff' block [10, 14].",
+  "expected_fix_contains": "always_ff @(posedge clk) state <= next_state;",
+  "rtl": "assign state = next_state; always_ff @(posedge clk) state <= 0;",
+  "testbench": "initial begin #10; next_state=1; end",
+  "failure_log": "Compile Error: Signal 'state' has multiple drivers.",
+  "success_log": "State updated exclusively within sequential clock block.",
+  "fix_replacement": "always_ff @(posedge clk) state <= next_state;",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "state",
+    "next_state"
+  ]
+}

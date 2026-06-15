@@ -1,0 +1,27 @@
+{
+  "id": "AXI_LITE_044",
+  "title": "Combinational WSTRB Glitch during VALID",
+  "description": "WSTRB values change in the middle of a valid W-channel handshake cycle, causing unpredictable byte-enable behavior.",
+  "bug_signature": "UVM_ERROR: [SVA_GLITCH] WSTRB changed while WVALID and WREADY were both high",
+  "expected_root_cause": "The Master's WSTRB generator is sensitive to an internal combinational loop [1, 29].",
+  "expected_fix_contains": "always_ff @(posedge clk) wstrb <=",
+  "failure_coverage": 30.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=10.2ns: WSTRB 0xF -> 0xE while WVALID=1. Handshake corrupted.",
+  "success_log": "WSTRB held stable for the duration of the cycle.",
+  "rtl": "assign wstrb = (state == DATA) ? 4'hF : 4'h0;",
+  "fix_replacement": "always_ff @(posedge clk) wstrb <= (next_state == DATA) ? 4'hF : 4'h0;",
+  "testbench": "task run(); drive_w(); #2; force vif.wstrb = 4'hE; endtask",
+  "forbidden_targets": [
+    "wvalid"
+  ],
+  "valid_signals": [
+    "wstrb",
+    "wvalid",
+    "wready"
+  ],
+  "metadata": {
+    "channel": "W",
+    "bug_type": "Timing"
+  }
+}

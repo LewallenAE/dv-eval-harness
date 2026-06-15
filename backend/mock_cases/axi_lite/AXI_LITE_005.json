@@ -1,0 +1,27 @@
+{
+  "id": "AXI_LITE_005",
+  "title": "DECERR Response Not Generated for Unmapped Address",
+  "description": "Accesses to the unmapped range 0xF000\u20130xFFFF hang indefinitely because the crossbar has no error slave and no timeout mechanism.",
+  "bug_signature": "UVM_FATAL: [TIMEOUT] No ARREADY/AWREADY for 10000 cycles at addr 0xF000",
+  "expected_root_cause": "The address decoder case statement has no default branch to route unmapped addresses to a DECERR generator [5, 6].",
+  "expected_fix_contains": "default: sel_err = 1",
+  "failure_coverage": 5.0,
+  "success_coverage": 95.0,
+  "failure_log": "ADDR=0xF800. No slave selected. READY never asserted. Simulation timeout.",
+  "success_log": "ADDR=0xF800 -> DECERR (RRESP=2'b11) returned within 2 cycles.",
+  "rtl": "case(addr[15:12]) 4'h0: sel_s0=1; 4'h1: sel_s1=1; endcase",
+  "fix_replacement": "unique case(addr[15:12]) 4'h0: sel_s0=1; 4'h1: sel_s1=1; default: sel_err=1; endcase",
+  "testbench": "task run(); drive_read(16'hF800); endtask",
+  "forbidden_targets": [
+    "sel_s0",
+    "sel_s1"
+  ],
+  "valid_signals": [
+    "addr",
+    "sel_err"
+  ],
+  "metadata": {
+    "channel": "ADDR",
+    "bug_type": "Decoding"
+  }
+}

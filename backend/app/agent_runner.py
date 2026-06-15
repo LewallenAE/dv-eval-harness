@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from app.llm import infer_root_cause, judge_root_cause
 from app.simulators import get_simulator_adapter
 from app.evaluator import compute_penalties, compute_r_total, compute_scores
 from app.schemas import AgentAction, DVCase, Trajectory
@@ -7,6 +8,7 @@ from app.tools import inspect_rtl, propose_fix, search_logs
 
 
 def run_agent_on_case(case: DVCase) -> Trajectory:
+    """Run the full five-step debug pipeline on a case and return a scored trajectory."""
     actions: list[AgentAction] = []
     evidence: list[str] = []
     simulator = get_simulator_adapter("mock")
@@ -64,9 +66,13 @@ def run_agent_on_case(case: DVCase) -> Trajectory:
     )
     evidence.append(sim_after.log)
 
-    # MVP behavior keeps the configured answer deterministic. Later this should
-    # be replaced by model-generated root cause inference from the gathered evidence.
-    predicted_root_cause = case.expected_root_cause
+    eval_mode = bool(case.expected_root_cause.strip())
+    predicted_root_cause = infer_root_cause(evidence, case)
+    root_cause_score = (
+        judge_root_cause(case.expected_root_cause, predicted_root_cause) if eval_mode else None
+    )
+
+    sim_fix_passed = sim_after.pass_rate >= 0.9
 
     scores = compute_scores(
         expected_root_cause=case.expected_root_cause,
@@ -75,6 +81,8 @@ def run_agent_on_case(case: DVCase) -> Trajectory:
         proposed_fix=fixed_rtl,
         evidence=evidence,
         expected_fix_contains=case.expected_fix_contains,
+        root_cause_score=root_cause_score,
+        sim_fix_passed=sim_fix_passed,
     )
 
     penalties = compute_penalties(
@@ -94,4 +102,5 @@ def run_agent_on_case(case: DVCase) -> Trajectory:
         penalties=penalties,
         constitutional_violations=penalties,
         r_total=r_total,
+        eval_mode=eval_mode,
     )

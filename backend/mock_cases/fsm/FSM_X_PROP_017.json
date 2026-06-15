@@ -1,0 +1,19 @@
+{
+  "id": "FSM_X_PROP_017",
+  "title": "X-Propagation in State Decoder",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "S0",
+    "S1"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SBD_COMP] FSM_OUT is X while state is 1",
+  "rtl": "assign fsm_out = (state == S1) ? 1 : 0; // state is bit [1:0]",
+  "testbench": "initial force state = 2'b1X;",
+  "expected_root_cause": "The decoder does not handle 'X' or 'Z' values on the state bus, leading to unknown propagation [21, 22].",
+  "expected_fix_contains": "assert (!$isunknown(state))",
+  "fix_replacement": "always_comb begin assert (!$isunknown(state)); if (state == S1) fsm_out = 1; else fsm_out = 0; end",
+  "description": "Reliability failure where invalid signal levels cause logic corruption."
+}

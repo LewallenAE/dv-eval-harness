@@ -1,0 +1,27 @@
+{
+  "id": "RR_ARB_048",
+  "title": "Grant Glitch on Done Signal (Delta-Cycle Race)",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 1,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [GLITCH] gnt glitches for 1 delta cycle on done event; X observed",
+  "rtl": "assign gnt = done ? next_gnt : hold_gnt;  // done depends on gnt \u2014 delta loop",
+  "testbench": "initial forever #5 clk = ~clk;",
+  "expected_root_cause": "The grant output is driven by a combinational expression that reads done, which is itself combinationally derived from gnt; the circular dependency causes a delta-cycle simulation race where gnt glitches for one delta cycle on every done event.",
+  "expected_fix_contains": "always_ff @(posedge clk or negedge rst_n)",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)    gnt <= 4'h0;\n  else if (done) gnt <= next_gnt;\n  else           gnt <= gnt;",
+  "description": "The combinational grant logic reads `done` which is itself combinationally dependent on `gnt`, creating a delta-cycle race where gnt glitches for one delta before settling.",
+  "failure_log": "UVM_ERROR: [GLITCH] gnt glitches for 1 delta cycle on done event; X observed",
+  "success_log": "gnt registered \u2014 no delta-cycle glitch. Stable on posedge clk only.",
+  "valid_signals": [
+    "gnt",
+    "done",
+    "next_gnt"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 15.0,
+  "success_coverage": 100.0
+}

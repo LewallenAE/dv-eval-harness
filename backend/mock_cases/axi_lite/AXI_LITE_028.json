@@ -1,0 +1,28 @@
+{
+  "id": "AXI_LITE_028",
+  "title": "Read/Write Arbitration Deadlock",
+  "description": "Simultaneous R/W requests to the same slave cause the arbiter to enter an illegal state where neither is granted.",
+  "bug_signature": "UVM_FATAL: [DEADLOCK] No transactions completed in 5000 cycles",
+  "expected_root_cause": "The arbiter's priority logic requires both VALID signals to be low before granting a new request, failing when both are high [8, 14].",
+  "expected_fix_contains": "if (arvalid) gnt_r = 1; else if (awvalid) gnt_w = 1;",
+  "failure_coverage": 5.0,
+  "success_coverage": 90.0,
+  "failure_log": "ARVALID=1, AWVALID=1, GNT_R=0, GNT_W=0.\nSimulation Timeout.",
+  "success_log": "Read granted first, Write follows.",
+  "rtl": "assign gnt = (arvalid ^ awvalid) & ready;",
+  "fix_replacement": "assign gnt_r = arvalid; assign gnt_w = !arvalid && awvalid;",
+  "testbench": "task run(); fork drive_read(); drive_write(); join endtask",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "arvalid",
+    "awvalid",
+    "gnt_r",
+    "gnt_w"
+  ],
+  "metadata": {
+    "channel": "ARB",
+    "bug_type": "Deadlock"
+  }
+}

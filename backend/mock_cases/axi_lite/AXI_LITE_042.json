@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_042",
+  "title": "BREADY Wait-State Starvation",
+  "description": "Crossbar times out on a write because the Master holds BREADY low for 1000+ cycles.",
+  "bug_signature": "UVM_FATAL: [TIMEOUT] BVALID never cleared by BREADY",
+  "expected_root_cause": "The Master sequence is missing a BREADY handshake or the driver logic is stuck in the Address phase [35, 36].",
+  "expected_fix_contains": "vif.bready <= 1",
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0,
+  "failure_log": "BVALID=1 since T=100. T=1100: Timeout. BREADY still 0.",
+  "success_log": "BREADY asserted within 5 cycles of BVALID.",
+  "rtl": "assign bready = 0; // Fixed in TB",
+  "fix_replacement": "always_ff @(posedge clk) bready <= 1'b1;",
+  "testbench": "task run(); drive_aw(); drive_w(); // missing bready endtask",
+  "forbidden_targets": [
+    "bvalid"
+  ],
+  "valid_signals": [
+    "bvalid",
+    "bready"
+  ],
+  "metadata": {
+    "channel": "B",
+    "bug_type": "Sequence"
+  }
+}

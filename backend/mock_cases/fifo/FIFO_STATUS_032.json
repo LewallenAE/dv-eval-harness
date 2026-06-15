@@ -1,0 +1,28 @@
+{
+  "id": "FIFO_STATUS_032",
+  "title": "FIFO Full Flag Off-By-One (Early Assertion)",
+  "family": "fifo_buffer",
+  "machine_type": "n/a",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [OVERFLOW] Data written with full=1 but count=DEPTH-1; slot wasted and next write drops data",
+  "rtl": "assign full  = (count == DEPTH - 1);  // Asserts one cycle early\nassign empty = (count == 0);",
+  "testbench": "initial begin DEPTH = 0; end",
+  "expected_root_cause": "The full flag comparison uses DEPTH-1 instead of DEPTH, causing full to assert when one empty slot remains; the final slot is permanently inaccessible and data silently dropped.",
+  "expected_fix_contains": "assign full  = (count == DEPTH)",
+  "fix_replacement": "assign full  = (count == DEPTH);  // Correct: assert only when truly full\nassign empty = (count == 0);",
+  "description": "The full flag uses count == DEPTH-1, asserting one entry too early; the FIFO has one unused slot and a write after full asserted silently drops data.",
+  "failure_log": "UVM_ERROR: [OVERFLOW] Data written with full=1 but count=DEPTH-1; slot wasted and next write drops data",
+  "success_log": "full asserts at count=DEPTH. All 16 slots filled before full fires.",
+  "valid_signals": [
+    "count",
+    "full",
+    "empty"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 40.0,
+  "success_coverage": 100.0
+}

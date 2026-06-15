@@ -1,0 +1,19 @@
+{
+  "id": "FSM_STALE_OUT_043",
+  "title": "FSM Registered Output Lags State",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "DONE"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SBD_VAL] DONE expected cycle 10, Got cycle 11",
+  "rtl": "always_ff @(posedge clk) done <= (state == DONE);",
+  "testbench": "task run(); wait(state == DONE); #1 assert(done == 1); endtask",
+  "expected_root_cause": "The output is registered based on the current state, creating a 1-cycle lag between the state transition and the signal change [5, 15].",
+  "expected_fix_contains": "always_ff @(posedge clk) done <= (next_state == DONE);",
+  "fix_replacement": "always_ff @(posedge clk) done <= (next_state == DONE); // Lookahead registration",
+  "description": "Latency bug where a status signal is delayed relative to the internal state change."
+}

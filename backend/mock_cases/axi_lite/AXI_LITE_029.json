@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_029",
+  "title": "X-Propagation on WDATA Strobe",
+  "description": "Crossbar allows WSTRB to contain 'X' values during a valid write, causing memory corruption in the slave.",
+  "bug_signature": "UVM_ERROR: [SVA_XZ] WSTRB contains unknown value at posedge clk",
+  "expected_root_cause": "Missing protocol assertion for signal integrity during valid handshakes [6, 15].",
+  "expected_fix_contains": "if (wvalid) assert(!$isunknown(wstrb))",
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=100ns: WVALID=1, WSTRB=4'bXX01.\nUVM_ERROR: X-Propagation detected.",
+  "success_log": "T=100ns: WSTRB=4'b1111. Transfer success.",
+  "rtl": "assign s_wstrb = wstrb;",
+  "fix_replacement": "always_comb begin if (wvalid) assert(!$isunknown(wstrb)) else $error(\"X on strobe\"); end",
+  "testbench": "task run(); vif.wstrb <= 4'bX; vif.wvalid <= 1; endtask",
+  "forbidden_targets": [
+    "wvalid"
+  ],
+  "valid_signals": [
+    "wstrb",
+    "wvalid"
+  ],
+  "metadata": {
+    "channel": "W",
+    "bug_type": "Reliability"
+  }
+}

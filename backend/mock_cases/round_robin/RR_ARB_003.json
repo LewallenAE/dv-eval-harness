@@ -1,0 +1,27 @@
+{
+  "id": "RR_ARB_003",
+  "title": "Combinational Grant Glitch on Priority Mask",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 5,
+  "sticky_until": "ready",
+  "bug_signature": "UVM_ERROR: [GLITCH] gnt changed mid-cycle without posedge clk",
+  "rtl": "assign gnt = req & ~((1 << last_gnt) - 1);  // Pure combinational \u2014 glitches on req transitions",
+  "testbench": "initial #10.2 req = 2'b11;",
+  "expected_root_cause": "The grant output is driven by a purely combinational assign statement with no clock edge, allowing it to glitch for fractions of a cycle whenever the request vector or last_gnt changes.",
+  "expected_fix_contains": "always_ff @(posedge clk or negedge rst_n)",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) gnt <= 4'h0;\n  else        gnt <= req & ~((1 << last_gnt) - 1);",
+  "description": "The grant output is combinationally derived from the request vector and mask, producing sub-cycle glitches that corrupt downstream handshakes.",
+  "failure_log": "UVM_ERROR: [GLITCH] gnt changed mid-cycle without posedge clk",
+  "success_log": "gnt stable and glitch-free; only transitions on posedge clk.",
+  "valid_signals": [
+    "gnt",
+    "req",
+    "last_gnt"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 15.0,
+  "success_coverage": 100.0
+}

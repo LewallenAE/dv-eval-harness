@@ -1,0 +1,16 @@
+{
+  "id": "ARB_FIXED_048",
+  "title": "Arbiter Fixed-Priority Master Hog",
+  "family": "round_robin",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [TIMEOUT] Slave 1 never received data",
+  "rtl": "assign gnt = req ? 1 : req[7] ? 2 : 0;",
+  "testbench": "task run(); m0.flood_bus(); m1.single_req(); endtask",
+  "expected_root_cause": "The arbiter is implemented as fixed priority; a high-bandwidth master can completely block others indefinitely [8, 20].",
+  "expected_fix_contains": "last_gnt <= current_gnt",
+  "fix_replacement": "always_ff @(posedge clk) if(gnt) last_gnt <= ~last_gnt; // Flip priority",
+  "description": "Starvation bug where Master 0 'hogs' the bus due to non-rotating priority logic."
+}

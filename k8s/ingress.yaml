@@ -1,0 +1,28 @@
+# Requires an nginx Ingress controller in the cluster (e.g. ingress-nginx).
+# Replace dv-eval.local with your actual domain before deploying to production.
+#
+# TLS can be added via cert-manager. Example addition under spec:
+#   tls:
+#     - hosts:
+#         - dv-eval.example.com
+#       secretName: dv-eval-tls
+# Add the cert-manager annotation: cert-manager.io/cluster-issuer: letsencrypt-prod
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dv-eval-api
+  namespace: dv-eval
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: dv-eval.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dv-eval-api
+                port:
+                  number: 80

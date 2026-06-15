@@ -1,0 +1,25 @@
+{
+  "id": "ARB_010",
+  "title": "Arbiter Vacuous Success Bug",
+  "description": "Concurrent assertion for fairness passes because the trigger (REQ) is never hit.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_INFO: Assertion ap_fairness passed 0 times (Vacuous)",
+  "expected_root_cause": "Implication operator used without checking coverage of the antecedent [22, 23].",
+  "expected_fix_contains": "cover property (@(posedge clk) req[9]);",
+  "rtl": "No RTL change needed.",
+  "testbench": "task run(); req=2'b01; #100; endtask",
+  "failure_log": "Verification reports 100% pass but REQ[9] was never tested.",
+  "success_log": "Coverage bin 'req1_hit' triggered; assertion confirmed non-vacuous.",
+  "fix_replacement": "assert property (req[9] |-> ##[1:5] gnt[9]); cover property (req[9]);",
+  "forbidden_targets": [
+    "gnt"
+  ],
+  "valid_signals": [
+    "req",
+    "clk"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "id": "FIFO_011",
+  "title": "FIFO Write-Strobe Glitch",
+  "description": "Write strobe pulses during reset, causing dummy data to be pushed.",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 32,
+  "depth": 16,
+  "pointer_width": 5,
+  "bug_signature": "UVM_ERROR: [SBD_DATA] Junk data in FIFO after reset",
+  "expected_root_cause": "Write enable logic lacks an '&& rst_n' condition [1, 10].",
+  "expected_fix_contains": "assign wr_en_gated = wr_en && rst_n;",
+  "rtl": "assign wr_en_internal = master_wr_en;",
+  "testbench": "initial begin master_wr_en=1; rst_n=0; #10; rst_n=1; end",
+  "failure_log": "T=5: rst_n=0. wr_ptr=0. Junk word written to mem.",
+  "success_log": "Write strobe gated during reset; FIFO empty after startup.",
+  "fix_replacement": "always_comb wr_en_int = wr_en && rst_n;",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "rst_n",
+    "wr_en",
+    "wr_ptr"
+  ]
+}

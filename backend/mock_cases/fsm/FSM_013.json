@@ -1,0 +1,27 @@
+{
+  "id": "FSM_013",
+  "title": "unique0 Case Allows Zero-Match \u2014 Silent Miss",
+  "description": "unique0 case permits the condition (1'b1) to match zero branches without a runtime error; if both state bits are low the case silently falls through, leaving next_state undriven.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "VCS-WARNING: unique0 case matched zero branches for state=10'h000; next_state retains stale value",
+  "expected_root_cause": "The unique0 qualifier allows the case expression to match zero branches without error; when no state bit is set next_state is silently left at its previous value, causing the FSM to stall in an unintended state.",
+  "expected_fix_contains": "unique case (1'b1)",
+  "rtl": "always_comb begin\n  unique0 case (1'b1)\n    state[0]: next_state = S1;  // Silently skipped if state[0]=0 and state[9]=0\n    state[9]: next_state = S0;\n  endcase\nend",
+  "testbench": "initial begin force state = 0; #10; end",
+  "failure_log": "VCS-WARNING: unique0 case matched zero branches for state=10'h000; next_state retains stale value",
+  "success_log": "unique case: all one-hot state values match exactly one branch. Zero-match eliminated.",
+  "fix_replacement": "always_comb begin\n  next_state = S0;  // Default before case prevents silent miss\n  unique case (1'b1)\n    state[0]: next_state = S1;\n    state[9]: next_state = S0;\n  endcase\nend",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "state",
+    "next_state"
+  ],
+  "failure_coverage": 10.0,
+  "success_coverage": 100.0
+}

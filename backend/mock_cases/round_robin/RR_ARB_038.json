@@ -1,0 +1,26 @@
+{
+  "id": "RR_ARB_038",
+  "title": "Vacuous $rose Assertion \u2014 Signal Never Rises",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 5,
+  "sticky_until": "ready",
+  "bug_signature": "UVM_WARNING: [VACUOUS] $rose(gnt) never true; assertion vacuously passed",
+  "rtl": "// SVA: check grant followed by active\nassert property (@(posedge clk) $rose(gnt) |-> ##1 active);  // gnt never rises in test",
+  "testbench": "initial req = 2'b11; // Held high forever",
+  "expected_root_cause": "The SVA property checks $rose(gnt) as its antecedent, but gnt is driven to 0 throughout the entire test; $rose(gnt) is never true, so the property passes vacuously without exercising any part of the actual grant logic.",
+  "expected_fix_contains": "cover  property (@(posedge clk) $rose(gnt))",
+  "fix_replacement": "assert property (@(posedge clk) disable iff (!rst_n) $rose(gnt) |-> ##1 active);\ncover  property (@(posedge clk) $rose(gnt));  // Force antecedent to fire",
+  "description": "An assertion checks `$rose(gnt) |-> ##1 active` but gnt is driven to 0 all test, so $rose(gnt) is never true; the property passes vacuously with no real coverage.",
+  "failure_log": "UVM_WARNING: [VACUOUS] $rose(gnt) never true; assertion vacuously passed",
+  "success_log": "cover property hit: $rose(gnt) triggered. Assertion evaluated and passed meaningfully.",
+  "valid_signals": [
+    "gnt",
+    "active"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 0.0,
+  "success_coverage": 100.0
+}

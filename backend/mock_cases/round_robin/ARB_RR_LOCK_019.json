@@ -1,0 +1,32 @@
+{
+  "id": "ARB_RR_LOCK_019",
+  "title": "Round-Robin Lock \u2014 last_gnt Not Reset, Combinational Logic Incomplete",
+  "family": "round_robin",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "M0",
+    "M1"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [XZ] last_gnt=1'bx after reset; round-robin rotation indeterminate",
+  "rtl": "always_comb\n  if (last_gnt == 1'b0 && req[1]) next_gnt = 1'b1;\n  // No else \u2014 next_gnt undriven for all other conditions",
+  "testbench": "initial begin req[7] = 1; end",
+  "expected_root_cause": "The last_gnt register has no reset branch so it is 1'bx at power-on; additionally the combinational next-grant logic has only one conditional branch leaving next_gnt undriven for all other master combinations, producing X on the grant bus.",
+  "expected_fix_contains": "if (!rst_n)    last_gnt <= 1'b0",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)    last_gnt <= 1'b0;\n  else if (|gnt) last_gnt <= gnt[1];  // Update to last granted master\nalways_comb begin\n  next_gnt = 1'b0;\n  if      (last_gnt == 1'b0 && req[1]) next_gnt = 1'b1;\n  else if (last_gnt == 1'b1 && req[0]) next_gnt = 1'b0;\n  else if (req[0])                     next_gnt = 1'b0;\n  else if (req[1])                     next_gnt = 1'b1;\nend",
+  "description": "The last_gnt pointer is not reset on rst_n, starting as 1'bx; the combinational next-grant logic only checks one condition and has no else branch, leaving the arbiter in an indeterminate rotation state after reset.",
+  "failure_log": "UVM_ERROR: [XZ] last_gnt=1'bx after reset; round-robin rotation indeterminate",
+  "success_log": "last_gnt=1'b0 after reset. Round-robin alternates correctly between masters.",
+  "valid_signals": [
+    "last_gnt",
+    "gnt",
+    "next_gnt",
+    "req"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

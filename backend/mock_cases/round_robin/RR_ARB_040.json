@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_040",
+  "title": "Mask Polarity Inversion \u2014 Grants Only Masked Masters",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 2,
+  "sticky_until": "none",
+  "bug_signature": "UVM_ERROR: [PRIO] Lower-priority master granted before higher-priority; mask polarity wrong",
+  "rtl": "assign masked_req = req & mask;        // Grants masked-out masters\nassign gnt = masked_req ? masked_req : req;",
+  "testbench": "task check(); req=2'b11; endtask",
+  "expected_root_cause": "The priority mask is applied directly to req (req & mask) rather than to its complement (~mask); masters in the masked-out set \u2014 the lower-priority ones \u2014 receive the grant while the higher-priority unmasked masters are blocked.",
+  "expected_fix_contains": "masked_req = req & ~mask",
+  "fix_replacement": "assign masked_req = req & ~mask;       // Exclude already-served masters\nassign gnt = masked_req ? masked_req : req;  // Fall back to full req if mask empty",
+  "description": "The arbiter applies the priority mask directly to the request vector rather than its complement, giving lower-priority masters (those that should be masked out) the grant instead of the higher-priority ones.",
+  "failure_log": "UVM_ERROR: [PRIO] Lower-priority master granted before higher-priority; mask polarity wrong",
+  "success_log": "Masked request excludes served masters. Round-robin order maintained.",
+  "valid_signals": [
+    "mask",
+    "masked_req",
+    "req",
+    "gnt"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 20.0,
+  "success_coverage": 95.0
+}

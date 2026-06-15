@@ -1,0 +1,19 @@
+{
+  "id": "FSM_RESET_009",
+  "title": "Missing Async Reset in Sensitivity List",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "BUSY"
+  ],
+  "has_default_case": true,
+  "bug_signature": "ERROR: FSM state is X after reset pulse",
+  "rtl": "always_ff @(posedge clk) if (!rst_n) state <= IDLE;",
+  "testbench": "initial begin rst_n = 0; #5 rst_n = 1; clk = 0; end",
+  "expected_root_cause": "The block is intended to use asynchronous reset but the sensitivity list only contains the clock edge [2, 5].",
+  "expected_fix_contains": "always_ff @(posedge clk or negedge rst_n)",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n) if (!rst_n) state <= IDLE; else state <= next_state;",
+  "description": "Initialization failure where the reset signal is ignored while the clock is idle."
+}

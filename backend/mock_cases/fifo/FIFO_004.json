@@ -1,0 +1,26 @@
+{
+  "id": "FIFO_004",
+  "title": "FIFO Almost Full Threshold Error",
+  "description": "The almost_full flag triggers too late, causing a burst to overflow the buffer.",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 32,
+  "depth": 16,
+  "pointer_width": 5,
+  "bug_signature": "UVM_ERROR: [SVA_OVF] FIFO overflow during burst",
+  "expected_root_cause": "Threshold logic compares pointers exactly rather than checking the remaining distance [13].",
+  "expected_fix_contains": "assign almost_full = (count >= DEPTH - 2)",
+  "rtl": "assign almost_full = (count == DEPTH - 1);",
+  "testbench": "task run(); drive_burst(4); endtask",
+  "failure_log": "Burst started at count 14. almost_full rose at 15. Transaction 16 and 17 dropped.",
+  "success_log": "almost_full rose at 14. Burst stopped safely.",
+  "fix_replacement": "assign almost_full = (count >= 14);",
+  "forbidden_targets": [
+    "wr_ptr",
+    "rd_ptr"
+  ],
+  "valid_signals": [
+    "almost_full",
+    "count"
+  ]
+}

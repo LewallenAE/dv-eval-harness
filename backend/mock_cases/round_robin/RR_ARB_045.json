@@ -1,0 +1,27 @@
+{
+  "id": "RR_ARB_045",
+  "title": "Sticky Grant Latch Inferred (Missing Else)",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "VCS-WARNING: Latch inferred for 'sticky_gnt'; synthesized behavior differs from simulation",
+  "rtl": "always_comb\n  if (active) sticky_gnt = gnt;  // No else \u2014 latch inferred for inactive case",
+  "testbench": "initial #100;",
+  "expected_root_cause": "The always_comb block assigns sticky_gnt only in the if (active) branch with no else assignment; synthesis infers a latch to hold the previous value of gnt when active=0, causing simulation-synthesis mismatch.",
+  "expected_fix_contains": "sticky_gnt = 4'h0",
+  "fix_replacement": "always_comb begin\n  sticky_gnt = 4'h0;           // Default: no grant\n  if (active) sticky_gnt = gnt; // Latch-free: always assigned\nend",
+  "description": "The always_comb block for sticky_gnt has an if without an else, causing synthesis to infer a latch that holds the last value of gnt rather than defaulting to zero when inactive.",
+  "failure_log": "VCS-WARNING: Latch inferred for 'sticky_gnt'; synthesized behavior differs from simulation",
+  "success_log": "No latch inferred. sticky_gnt=0 when active=0.",
+  "valid_signals": [
+    "sticky_gnt",
+    "gnt",
+    "active"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 10.0,
+  "success_coverage": 100.0
+}

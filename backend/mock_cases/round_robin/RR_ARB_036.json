@@ -1,0 +1,29 @@
+{
+  "id": "RR_ARB_036",
+  "title": "Sticky Grant Released on AR-Channel Not R-Channel",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 10,
+  "sticky_until": "rvalid",
+  "bug_signature": "UVM_ERROR: [PROT] gnt released after AR handshake; RDATA phase lost",
+  "rtl": "always_ff @(posedge clk)\n  if (arvalid && arready) gnt <= 4'h0;  // Released too early \u2014 data phase not done",
+  "testbench": "task check(); drive_read(); endtask",
+  "expected_root_cause": "The arbiter releases the read grant when the AR-channel handshake (ARVALID/ARREADY) completes, but AXI requires holding the grant through the read-data channel (RVALID/RREADY); the bus master loses its grant before receiving the response data.",
+  "expected_fix_contains": "if (rvalid && rready) gnt <= 4'h0",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)              gnt <= 4'h0;\n  else if (rvalid && rready) gnt <= 4'h0;  // Release after read data completes\n  else if (!gnt_active)    gnt <= next_gnt;",
+  "description": "An AXI read grant is released when ARREADY fires, but it must be held until RVALID/RREADY completes the read data phase.",
+  "failure_log": "UVM_ERROR: [PROT] gnt released after AR handshake; RDATA phase lost",
+  "success_log": "Grant held through full AXI read: AR\u2192R. Released after RVALID/RREADY.",
+  "valid_signals": [
+    "gnt",
+    "arvalid",
+    "arready",
+    "rvalid",
+    "rready"
+  ],
+  "forbidden_targets": [
+    "arvalid"
+  ],
+  "failure_coverage": 40.0,
+  "success_coverage": 100.0
+}

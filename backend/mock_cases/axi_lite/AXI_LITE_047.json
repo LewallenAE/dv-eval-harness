@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_047",
+  "title": "Internal FIFO Buffer Overflow",
+  "description": "Crossbar accepts WDATA even when internal write-buffers are full, overwriting previous data.",
+  "bug_signature": "UVM_ERROR: [SBD_DATA] Data corrupted at address 0x1000 (FIFO Overflow)",
+  "expected_root_cause": "The READY signal is not gated by the FIFO's 'Full' status flag [36, 39].",
+  "expected_fix_contains": "assign wready = !fifo_full",
+  "failure_coverage": 40.0,
+  "success_coverage": 90.0,
+  "failure_log": "FIFO_COUNT=16, WVALID=1, WREADY=1.\nUVM_FATAL: Buffer overflow.",
+  "success_log": "WREADY drops to 0 when internal buffer is full.",
+  "rtl": "assign wready = 1'b1;",
+  "fix_replacement": "assign wready = !fifo_full;",
+  "testbench": "task run(); repeat(20) drive_write(); endtask",
+  "forbidden_targets": [
+    "wvalid"
+  ],
+  "valid_signals": [
+    "wready",
+    "fifo_full"
+  ],
+  "metadata": {
+    "channel": "W",
+    "bug_type": "Functional"
+  }
+}

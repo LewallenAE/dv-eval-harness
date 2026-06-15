@@ -1,0 +1,27 @@
+{
+  "id": "RR_ARB_043",
+  "title": "Non-One-Hot Grant During State Transition",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 5,
+  "sticky_until": "ready",
+  "bug_signature": "UVM_ERROR: [MULTI_GNT] gnt=2'b11 during S0\u2192S1 transition; non-one-hot grant",
+  "rtl": "always_comb begin\n  gnt[0] = (state == GNT_S0);\n  gnt[1] = (next_state == GNT_S1);  // next_state high while state still = GNT_S0\nend",
+  "testbench": "initial #150;",
+  "expected_root_cause": "The grant outputs are derived from both the current state and the next-state signal simultaneously; during the single cycle when state=GNT_S0 transitions to GNT_S1, both gnt[0] and gnt[1] are asserted concurrently, violating the one-hot grant requirement.",
+  "expected_fix_contains": "else if (state == GNT_S1) gnt[1] = 1'b1",
+  "fix_replacement": "always_comb begin\n  gnt = 2'b00;\n  if      (state == GNT_S0) gnt[0] = 1'b1;\n  else if (state == GNT_S1) gnt[1] = 1'b1;\nend",
+  "description": "During the one cycle when the FSM transitions from GNT_S0 to GNT_S1, both `gnt[0]` and `gnt[1]` are simultaneously asserted because the output is derived from both current state and next state.",
+  "failure_log": "UVM_ERROR: [MULTI_GNT] gnt=2'b11 during S0\u2192S1 transition; non-one-hot grant",
+  "success_log": "gnt always one-hot; only current state drives output. No glitch during transition.",
+  "valid_signals": [
+    "gnt",
+    "state",
+    "next_state"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0
+}

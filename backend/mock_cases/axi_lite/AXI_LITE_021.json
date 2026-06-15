@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_021",
+  "title": "Read Address (AR) Handshake Violation",
+  "description": "Crossbar deasserts ARREADY before the Master deasserts ARVALID, without a successful transfer.",
+  "bug_signature": "UVM_ERROR: [AXI_PROT_CHECK] ARREADY dropped before ARVALID high and handshake success",
+  "expected_root_cause": "The AR-channel state machine uses a combinational path that reacts to an internal stall without holding the READY state until the clock edge [1].",
+  "expected_fix_contains": "always_ff @(posedge clk) if (arvalid && !arready)",
+  "failure_coverage": 40.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=30ns: ARVALID=1, ARREADY=1\nT=35ns: ARREADY=0 (Glitch)\nUVM_ERROR: Protocol Violation: READY dropped mid-handshake.",
+  "success_log": "ARREADY remains stable until posedge clk where ARVALID is high.",
+  "rtl": "assign arready = !internal_fifo_full;",
+  "fix_replacement": "always_ff @(posedge clk) begin if (!rst_n) arready <= 0; else arready <= !internal_fifo_full; end",
+  "testbench": "task run(); vif.arvalid <= 1; @(posedge clk); endtask",
+  "forbidden_targets": [
+    "arvalid"
+  ],
+  "valid_signals": [
+    "arvalid",
+    "arready"
+  ],
+  "metadata": {
+    "channel": "AR",
+    "bug_type": "Handshake"
+  }
+}

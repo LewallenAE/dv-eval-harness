@@ -1,0 +1,31 @@
+{
+  "id": "FSM_INIT_028",
+  "title": "FSM Power-On State Unknown \u2014 Missing Reset Branch",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "ACTIVE"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SVA_XZ] state=4'bxxxx on first posedge clk; all FSM outputs unknown",
+  "rtl": "always_ff @(posedge clk)\n  state <= next_state;  // No reset branch \u2014 state=X at power-on",
+  "testbench": "initial #0 clk = 0; #10 clk = 1;",
+  "expected_root_cause": "The always_ff block has no if(!rst_n) reset branch; the state register retains an unknown value from power-on that propagates through all combinational next-state and output logic until the first manual clear.",
+  "expected_fix_contains": "if (!rst_n) state <= IDLE",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) state <= IDLE;\n  else        state <= next_state;",
+  "description": "The state register is clocked with a simple always_ff but has no reset branch; at power-on state is 4'bxxxx (unknown), and unknown states propagate through all combinational next-state logic.",
+  "failure_log": "UVM_ERROR: [SVA_XZ] state=4'bxxxx on first posedge clk; all FSM outputs unknown",
+  "success_log": "state=IDLE after rst_n. All FSM outputs known-good on first active cycle.",
+  "valid_signals": [
+    "state",
+    "next_state",
+    "rst_n"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

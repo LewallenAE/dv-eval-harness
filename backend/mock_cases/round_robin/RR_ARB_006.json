@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_006",
+  "title": "Starvation via Static Mask",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 20,
+  "sticky_until": "last",
+  "bug_signature": "UVM_ERROR: [STARVE] masked_req=0 every cycle; no master ever granted",
+  "rtl": "assign mask = 4'hF;\nassign masked_req = req & ~mask;  // ~4'hF = 0 \u2014 always zero",
+  "testbench": "task check_fairness(); req = 4'b1111; endtask",
+  "expected_root_cause": "The priority mask is hardcoded to 4'hF, so its complement (~mask) is always zero; the masked request vector is permanently zero and no master is ever granted.",
+  "expected_fix_contains": "mask = (4'hF << (last_gnt + 1))",
+  "fix_replacement": "assign mask = (4'hF << (last_gnt + 1)) | (4'hF >> (4 - last_gnt));\nassign masked_req = req & mask;",
+  "description": "The priority mask is hardcoded to 4'hF (all-ones), so the masked-request vector is always zero and no master is ever granted.",
+  "failure_log": "UVM_ERROR: [STARVE] masked_req=0 every cycle; no master ever granted",
+  "success_log": "Rotating mask gives every master access. Round-robin fairness verified.",
+  "valid_signals": [
+    "mask",
+    "masked_req",
+    "last_gnt",
+    "req"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 0.0,
+  "success_coverage": 95.0
+}

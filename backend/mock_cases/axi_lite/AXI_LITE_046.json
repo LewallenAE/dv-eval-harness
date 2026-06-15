@@ -1,0 +1,27 @@
+{
+  "id": "AXI_LITE_046",
+  "title": "Priority Encoder Starvation",
+  "description": "Arbiter always prioritizes Master 0, causing Master 1's requests to never be served.",
+  "bug_signature": "UVM_ERROR: [SVA_STARVE] Master 1 request pending for > 10000 cycles",
+  "expected_root_cause": "Arbiter uses a fixed priority scheme instead of round-robin or weighted fair queuing [8, 38].",
+  "expected_fix_contains": "priority_state <= ~priority_state",
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0,
+  "failure_log": "M0 REQ=1 (Continuous), M1 REQ=1. M1 GNT never asserted.",
+  "success_log": "M1 granted access after M0 transaction completes.",
+  "rtl": "assign gnt0 = req0; assign gnt1 = !req0 && req1;",
+  "fix_replacement": "always_ff @(posedge clk) if (done) last_gnt <= current_gnt; // Round-robin logic",
+  "testbench": "task run(); fork m0.infinite_stream(); m1.single_read(); join endtask",
+  "forbidden_targets": [
+    "req0"
+  ],
+  "valid_signals": [
+    "req0",
+    "req1",
+    "gnt1"
+  ],
+  "metadata": {
+    "channel": "ARB",
+    "bug_type": "Concurrency"
+  }
+}

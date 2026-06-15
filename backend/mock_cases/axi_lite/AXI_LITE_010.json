@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_010",
+  "title": "AWPROT Bits Ignored \u2014 Secure/Non-Secure Bypass",
+  "description": "The crossbar routes all transactions to protected slave registers regardless of the AWPROT[1] (Non-Secure) bit, bypassing security isolation.",
+  "bug_signature": "UVM_ERROR: [PROT_FAIL] Non-secure write (AWPROT=2'b10) reached secure slave S2",
+  "expected_root_cause": "The secure slave selection logic does not check AWPROT[1], allowing non-secure masters to access secure registers [12, 13].",
+  "expected_fix_contains": "if (awprot[1] == 0) sel_secure = 0",
+  "failure_coverage": 30.0,
+  "success_coverage": 100.0,
+  "failure_log": "AWPROT=3'b010 (Non-Secure). Secure slave S2 accessed. SLVERR not generated.\nUVM_ERROR: Security violation.",
+  "success_log": "AWPROT[1]=1 required for S2 access; non-secure transactions get DECERR.",
+  "rtl": "assign sel_s2 = (addr[15:12] == 4'hF);",
+  "fix_replacement": "assign sel_s2 = (addr[15:12] == 4'hF) && (awprot[1] == 1'b0);",
+  "testbench": "task run(); `uvm_do_with(req, {awprot == 3'b010; addr == 16'hF000;}) endtask",
+  "forbidden_targets": [
+    "addr"
+  ],
+  "valid_signals": [
+    "awprot",
+    "sel_s2"
+  ],
+  "metadata": {
+    "channel": "AW",
+    "bug_type": "Security"
+  }
+}

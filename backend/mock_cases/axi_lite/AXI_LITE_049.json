@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_049",
+  "title": "Read Data (R) Valid without Response (RRESP)",
+  "description": "Crossbar drives RVALID=1 but RRESP stays at an uninitialized 'X' value.",
+  "bug_signature": "UVM_ERROR: [SVA_XZ] RRESP is unknown while RVALID is high",
+  "expected_root_cause": "The response multiplexer logic is missing a default case for unused internal error states [42, 43].",
+  "expected_fix_contains": "default: rresp = 2'b11",
+  "failure_coverage": 15.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=200: RVALID=1, RDATA=0x1234, RRESP=2'bXX.\nUVM_ERROR: X-Propagation on response channel.",
+  "success_log": "RRESP correctly set to 0x0 or 0x3.",
+  "rtl": "case(err_code) 1: rresp=3; endcase",
+  "fix_replacement": "case(err_code) 1: rresp=3; default: rresp=0; endcase",
+  "testbench": "task run(); drive_read(); endtask",
+  "forbidden_targets": [
+    "rdata"
+  ],
+  "valid_signals": [
+    "rvalid",
+    "rresp"
+  ],
+  "metadata": {
+    "channel": "R",
+    "bug_type": "Reliability"
+  }
+}

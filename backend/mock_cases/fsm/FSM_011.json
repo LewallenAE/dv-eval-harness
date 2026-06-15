@@ -1,0 +1,27 @@
+{
+  "id": "FSM_011",
+  "title": "casez Wildcard Overlap \u2014 Non-Deterministic Branch Selection",
+  "description": "The pattern 4'b1??? matches all values 4'b1000\u20134'b1111; the second pattern 4'b11?? also matches 4'b1100\u20134'b1111, creating overlap. Synthesis may pick either branch non-deterministically.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "VCS-ERROR: casez non-deterministic branch for in_bus=4'b1100; patterns 4'b1??? and 4'b11?? both match",
+  "expected_root_cause": "The first casez pattern (4'b1???) is a superset of the second (4'b11??); for any input with the top two bits both set, both patterns match simultaneously, producing non-deterministic output that differs between simulation and synthesis.",
+  "expected_fix_contains": "4'b10??: out = 2'h1",
+  "rtl": "always_comb begin\n  casez (in_bus)\n    4'b1???: out = 2'h1;  // Matches 4'b1100 \u2014 overlaps with next branch\n    4'b11??: out = 2'h2;  // Also matches 4'b1100\n    default: out = 2'h0;\n  endcase\nend",
+  "testbench": "initial begin in_bus=4'b1100; #10; end",
+  "failure_log": "VCS-ERROR: casez non-deterministic branch for in_bus=4'b1100; patterns 4'b1??? and 4'b11?? both match",
+  "success_log": "unique casez: exactly one branch fires for all in_bus values. No overlap violations.",
+  "fix_replacement": "always_comb begin\n  unique casez (in_bus)\n    4'b10??: out = 2'h1;  // Only 4'b10xx \u2014 no overlap with 4'b11??branch\n    4'b11??: out = 2'h2;\n    default: out = 2'h0;\n  endcase\nend",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "in_bus",
+    "out"
+  ],
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0
+}

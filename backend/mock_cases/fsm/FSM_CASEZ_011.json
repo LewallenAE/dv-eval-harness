@@ -1,0 +1,20 @@
+{
+  "id": "FSM_CASEZ_011",
+  "title": "Casez Wildcard Overlap Collision",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "S0",
+    "S1",
+    "S2"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [FSM_STATE] Jumped to S2 instead of S1",
+  "rtl": "casez(bus) 4'b1???: next = S1; 4'b11??: next = S2; endcase",
+  "testbench": "initial bus = 4'b1100;",
+  "expected_root_cause": "The wildcard patterns in the casez statement are not mutually exclusive, and the first match wins regardless of specificity [17, 18].",
+  "expected_fix_contains": "unique casez (bus)",
+  "fix_replacement": "unique casez(bus) 4'b10??: next = S1; 4'b11??: next = S2; endcase",
+  "description": "Logic ambiguity in priority encoding using wildcard case statements."
+}

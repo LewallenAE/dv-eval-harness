@@ -1,0 +1,25 @@
+{
+  "id": "FIFO_012",
+  "title": "FIFO Depth Parameter Overflow",
+  "description": "FIFO instantiated with depth 17, but address logic only supports 4 bits (depth 16).",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 32,
+  "depth": 17,
+  "pointer_width": 5,
+  "bug_signature": "UVM_ERROR: [SBD_DATA] Data lost at index 16",
+  "expected_root_cause": "Address pointer width is hardcoded instead of using $clog2(DEPTH) [12, 25].",
+  "expected_fix_contains": "localparam ADDR_W = $clog2(DEPTH);",
+  "rtl": "logic [3:0] ptr; // hardcoded for 16",
+  "testbench": "task run(); push(17); endtask",
+  "failure_log": "Write 17 directed to index 0 (ptr wrapped). Data 0 lost.",
+  "success_log": "Address bus automatically widened to 5 bits to support depth 17.",
+  "fix_replacement": "logic [$clog2(DEPTH)-1:0] ptr;",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "ptr",
+    "DEPTH"
+  ]
+}

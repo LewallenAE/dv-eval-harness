@@ -1,0 +1,19 @@
+{
+  "id": "ARB_RR_004",
+  "title": "Round-Robin Fairness Starvation",
+  "family": "round_robin",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "M0_PRIORITY",
+    "M1_PRIORITY"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [STARVE] Master 1 request pending for 1000 cycles",
+  "rtl": "assign gnt = req ? 2'b01 : (req[7] ? 2'b10 : 2'b00);",
+  "testbench": "task run(); fork m0.stream(); m1.request(); join endtask",
+  "expected_root_cause": "Arbiter uses fixed priority instead of rotating the 'last granted' state to ensure fairness [8, 9].",
+  "expected_fix_contains": "always_ff @(posedge clk) if(any_gnt) last_gnt <= current_gnt;",
+  "fix_replacement": "always_comb case(last_gnt) 0: gnt = req[7] ? 2'b10 : 2'b01; 1: gnt = req ? 2'b01 : 2'b10; endcase",
+  "description": "Arbiter starvation bug where one master consumes all bandwidth due to lack of rotation."
+}

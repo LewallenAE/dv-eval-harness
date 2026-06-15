@@ -1,0 +1,27 @@
+{
+  "id": "AXI_LITE_023",
+  "title": "Address Decoder Partial Mapping Hole",
+  "description": "A valid address range (0x3000-0x3FFF) is not mapped to any slave or the DECERR generator.",
+  "bug_signature": "UVM_FATAL: [SVA_HANG] Master waiting for ARREADY/AWREADY indefinitely at addr 0x3000",
+  "expected_root_cause": "The address decoding case statement is not 'full', leaving a hole in the memory map [8, 9].",
+  "expected_fix_contains": "default: slave_sel = ERROR_SLAVE",
+  "failure_coverage": 10.0,
+  "success_coverage": 95.0,
+  "failure_log": "T=100ns: ADDR=0x3500. No READY signal high from Crossbar.",
+  "success_log": "ADDR=0x3500 -> DECERR response generated.",
+  "rtl": "case(addr[15:12]) 4'h1: s0=1; 4'h2: s1=1; endcase",
+  "fix_replacement": "unique case(addr[15:12]) 4'h1: s0=1; 4'h2: s1=1; default: s_err=1; endcase",
+  "testbench": "task run(); drive_addr(0x3500); endtask",
+  "forbidden_targets": [
+    "s0",
+    "s1"
+  ],
+  "valid_signals": [
+    "addr",
+    "s_err"
+  ],
+  "metadata": {
+    "channel": "ADDR",
+    "bug_type": "Decoding"
+  }
+}

@@ -1,0 +1,26 @@
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist traces on the host so they survive container restarts.
+      # The host path is relative to this file (the repo root).
+      - ./backend/traces:/app/traces
+    environment:
+      # These are read from the host environment or from the .env file below.
+      # Explicit entries here ensure the variables are always forwarded even
+      # if the .env file is absent.
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - DV_LLM_MODEL=${DV_LLM_MODEL:-}
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

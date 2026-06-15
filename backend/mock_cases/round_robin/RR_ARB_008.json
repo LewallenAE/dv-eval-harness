@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_008",
+  "title": "Grant Without Request Fault",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 0,
+  "sticky_until": "none",
+  "bug_signature": "UVM_ERROR: [PROT] gnt[2]=1 while req[2]=0 in IDLE state",
+  "rtl": "always_comb\n  gnt = (state == IDLE) ? 4'h4 : 4'h0;  // Grants M2 unconditionally in IDLE",
+  "testbench": "task check(); req = 4'b0000; #10 assert(gnt == 0); endtask",
+  "expected_root_cause": "The combinational grant logic drives gnt to 4'h4 (master 2) unconditionally whenever the FSM is in IDLE state, regardless of whether master 2 has asserted a request.",
+  "expected_fix_contains": "gnt = (4'h1 << gnt_id)",
+  "fix_replacement": "always_comb begin\n  gnt = 4'h0;\n  if (state == GRANT)\n    gnt = (4'h1 << gnt_id);  // Grant only to requesting master\nend",
+  "description": "The arbiter issues a grant to master 2 whenever the state machine is idle, even when master 2 has not asserted a request.",
+  "failure_log": "UVM_ERROR: [PROT] gnt[2]=1 while req[2]=0 in IDLE state",
+  "success_log": "gnt asserted only when corresponding req bit is high and arbiter is in GRANT state.",
+  "valid_signals": [
+    "gnt",
+    "req",
+    "state",
+    "gnt_id"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 25.0,
+  "success_coverage": 100.0
+}

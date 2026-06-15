@@ -1,0 +1,25 @@
+{
+  "id": "FIFO_013",
+  "title": "FIFO Write-Response Latency Bug",
+  "description": "FIFO reports 'Full' only 2 cycles after the actual overflow occurs.",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 32,
+  "depth": 8,
+  "pointer_width": 4,
+  "bug_signature": "UVM_ERROR: [SBD_SIZE] Overflow detected by monitor but not full flag",
+  "expected_root_cause": "Status flag 'full' is registered once more than the pointers, creating a lag [1].",
+  "expected_fix_contains": "assign full = (next_count == DEPTH);",
+  "rtl": "always_ff @(posedge clk) full <= (count == DEPTH);",
+  "testbench": "task run(); drive_at_max_rate(); endtask",
+  "failure_log": "T=80: Count=8. Full=0. T=90: Count=9. Full=1.",
+  "success_log": "Full flag asserts combinational-path based on next_count.",
+  "fix_replacement": "assign full = (count == DEPTH);",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "full",
+    "count"
+  ]
+}

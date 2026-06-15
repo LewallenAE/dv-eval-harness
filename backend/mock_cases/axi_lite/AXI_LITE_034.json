@@ -1,0 +1,25 @@
+{
+  "id": "AXI_LITE_034",
+  "title": "Modport Port-Direction Violation",
+  "description": "Internal Crossbar logic attempts to drive a signal that is defined as an 'input' in the modport, causing a multi-driver contention.",
+  "bug_signature": "VCS-ERROR: Multi-driver contention on signal 'awvalid'",
+  "expected_root_cause": "Interface Modport definition used for internal logic incorrectly allows outputting on a master-driven signal [22].",
+  "expected_fix_contains": "modport slave (input awvalid)",
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0,
+  "failure_log": "Crossbar driving AWVALID=1 while Master driving AWVALID=0.\nValue=X.",
+  "success_log": "AWVALID only driven by Master.",
+  "rtl": "module crossbar(axi_lite_if.master bus); assign bus.awvalid = 1'b0; endmodule",
+  "fix_replacement": "module crossbar(axi_lite_if.slave bus); // Use slave modport endmodule",
+  "testbench": "initial #10 assert(vif.awvalid !== 1'bX);",
+  "forbidden_targets": [
+    "awvalid"
+  ],
+  "valid_signals": [
+    "awvalid"
+  ],
+  "metadata": {
+    "channel": "GEN",
+    "bug_type": "Syntax"
+  }
+}

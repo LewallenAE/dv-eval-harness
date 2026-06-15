@@ -1,0 +1,25 @@
+{
+  "id": "ARB_013",
+  "title": "Arbiter Bus Contention on Reset",
+  "description": "Two masters attempt to drive the bus during the reset phase because their grants are 'X'.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_FATAL: [BUS_COLL] Multiple drivers at T=0",
+  "expected_root_cause": "Grant registers lack an initial assignment or an active reset branch [10, 19].",
+  "expected_fix_contains": "if (!rst_n) gnt <= 0;",
+  "rtl": "always_ff @(posedge clk) gnt <= next_gnt;",
+  "testbench": "initial begin #10; rst_n=1; end",
+  "failure_log": "T=0 to 10: GNT=X. Both masters drove data bus.",
+  "success_log": "GNT=0 during reset; bus held at high-Z.",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n) if(!rst_n) gnt <= 0; else gnt <= next_gnt;",
+  "forbidden_targets": [
+    "req"
+  ],
+  "valid_signals": [
+    "gnt",
+    "rst_n"
+  ]
+}

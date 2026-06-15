@@ -1,0 +1,27 @@
+{
+  "id": "RR_ARB_039",
+  "title": "Clock-Enable Gate Missing \u2014 FSM Advances Without Enable",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [TIMING] FSM advanced during stall cycle (clk_en=0); state corrupted",
+  "rtl": "always_ff @(posedge clk)\n  state <= next_state;  // Advances every cycle \u2014 ignores clk_en",
+  "testbench": "initial force en = 0;",
+  "expected_root_cause": "The FSM always_ff block transitions state on every posedge clk with no conditional check on clk_en; during stall cycles when clk_en=0 the FSM advances anyway, placing it in the wrong state when normal operation resumes.",
+  "expected_fix_contains": "else if (clk_en) state <= next_state",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)    state <= IDLE;\n  else if (clk_en) state <= next_state;",
+  "description": "The arbiter FSM transitions on every posedge clk regardless of a `clk_en` gating signal, causing it to advance during stall cycles when it should be frozen.",
+  "failure_log": "UVM_ERROR: [TIMING] FSM advanced during stall cycle (clk_en=0); state corrupted",
+  "success_log": "FSM frozen when clk_en=0. Resumes correctly on next clk_en assertion.",
+  "valid_signals": [
+    "state",
+    "next_state",
+    "clk_en"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 30.0,
+  "success_coverage": 100.0
+}

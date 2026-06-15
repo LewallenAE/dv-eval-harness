@@ -1,0 +1,19 @@
+{
+  "id": "FSM_MEALY_OUT_026",
+  "title": "Mealy Output Out of Sync with State",
+  "family": "fsm_controller",
+  "machine_type": "mealy",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "DONE"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SVA_PROT] DONE pulsed without valid transfer",
+  "rtl": "always_comb if (state == IDLE && finish) done = 1;",
+  "testbench": "initial begin state = IDLE; finish = 1; #10 state = DONE; finish = 0; end",
+  "expected_root_cause": "The output is high during the transition but the state update logic and output logic are evaluated in different delta cycles [15, 29].",
+  "expected_fix_contains": "if (state == IDLE && next == DONE)",
+  "fix_replacement": "always_comb begin done = (state == IDLE && next_state == DONE); end",
+  "description": "Functional error where a status pulse occurs slightly before or after its associated state."
+}

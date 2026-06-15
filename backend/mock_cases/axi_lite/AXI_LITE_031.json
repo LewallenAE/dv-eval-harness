@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_031",
+  "title": "Write Strobe (WSTRB) Bit Swapping",
+  "description": "Crossbar incorrectly maps Master WSTRB to Slave WSTRB[17], causing bytes to be written to wrong offsets.",
+  "bug_signature": "UVM_ERROR: [SBD_DATA] Data 0xAA written to offset 3 instead of 0",
+  "expected_root_cause": "Manual bit-vector mapping error in the crossbar top-level instantiation [18].",
+  "expected_fix_contains": "assign s_wstrb = wstrb",
+  "failure_coverage": 80.0,
+  "success_coverage": 100.0,
+  "failure_log": "Master WSTRB=4'b0001 -> Slave WSTRB=4'b1000.\nUVM_ERROR: Byte lane mapping error.",
+  "success_log": "WSTRB mapped 1-to-1.",
+  "rtl": "assign s_wstrb = {wstrb, wstrb[19], wstrb[20], wstrb[17]};",
+  "fix_replacement": "assign s_wstrb = wstrb;",
+  "testbench": "task run(); `uvm_do_with(req, {wstrb == 4'b0001;}) endtask",
+  "forbidden_targets": [
+    "wdata"
+  ],
+  "valid_signals": [
+    "wstrb",
+    "s_wstrb"
+  ],
+  "metadata": {
+    "channel": "W",
+    "bug_type": "Functional"
+  }
+}

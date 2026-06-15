@@ -1,0 +1,25 @@
+{
+  "id": "RR_ARB_044",
+  "title": "Arbitration Counter Overflow \u2014 Wrong Bit Width",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 256,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [FAIRNESS] Counter overflow at cycle 255; early re-arbitration detected",
+  "rtl": "logic [7:0] count;  // Max 255 \u2014 insufficient for 300-cycle fairness window",
+  "testbench": "task check(); repeat(300) @(posedge clk); endtask",
+  "expected_root_cause": "The fairness window counter is declared as logic [7:0], limiting it to 255 cycles; the required window is 300 cycles, so the counter overflows at cycle 255, wraps to zero, and triggers a premature re-arbitration event.",
+  "expected_fix_contains": "logic [8:0] count",
+  "fix_replacement": "logic [8:0] count;  // 9 bits required for window up to 511 cycles",
+  "description": "The fairness window counter is 8 bits (max 255) but the required fairness window is 300 cycles; at cycle 255 the counter wraps to zero and grants master 0 prematurely.",
+  "failure_log": "UVM_ERROR: [FAIRNESS] Counter overflow at cycle 255; early re-arbitration detected",
+  "success_log": "Counter reaches 300 without overflow. Fairness window met exactly.",
+  "valid_signals": [
+    "count"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 15.0,
+  "success_coverage": 100.0
+}

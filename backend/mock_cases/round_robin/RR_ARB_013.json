@@ -1,0 +1,25 @@
+{
+  "id": "RR_ARB_013",
+  "title": "Priority Pointer Width Mismatch (8 Masters)",
+  "family": "round_robin",
+  "num_masters": 8,
+  "fairness_window": 8,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [STARVE] Masters 4-7 never granted; last_gnt truncated to 2 bits",
+  "rtl": "logic [1:0] last_gnt;  // Only 4 states \u2014 8-master design needs 3 bits",
+  "testbench": "task check(); repeat(10) drive_all(); endtask",
+  "expected_root_cause": "The priority pointer last_gnt is declared as logic [1:0] (4 states) in an 8-master design that requires 3 bits (8 states); masters 4\u20137 are permanently unreachable by the pointer.",
+  "expected_fix_contains": "logic [$clog2(NUM_MASTERS)-1:0] last_gnt",
+  "fix_replacement": "localparam PTR_W = $clog2(NUM_MASTERS);\nlogic [PTR_W-1:0] last_gnt;  // Correct width for any NUM_MASTERS",
+  "description": "The priority pointer is declared as 2 bits but the design has 8 masters requiring 3 bits; the pointer silently truncates to 4 states, permanently starving masters 4\u20137.",
+  "failure_log": "UVM_ERROR: [STARVE] Masters 4-7 never granted; last_gnt truncated to 2 bits",
+  "success_log": "All 8 masters receive grants. last_gnt cycles 0\u20137 correctly.",
+  "valid_signals": [
+    "last_gnt"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 10.0,
+  "success_coverage": 100.0
+}

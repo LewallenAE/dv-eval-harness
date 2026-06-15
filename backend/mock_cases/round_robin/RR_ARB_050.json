@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_050",
+  "title": "Arbiter Power-On Bias \u2014 No Reset on Priority Pointer",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 16,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [FAIRNESS] last_gnt=2'bxx at power-on; biased arbitration for first 100 cycles",
+  "rtl": "logic [1:0] last_gnt;  // No reset \u2014 indeterminate at power-on",
+  "testbench": "initial #10 req = 4'b1111;",
+  "expected_root_cause": "The priority pointer last_gnt is declared without an always_ff reset branch; its power-on value is 2'bxx (indeterminate), biasing the round-robin arbitration toward whichever master index the garbage value happens to match.",
+  "expected_fix_contains": "if (!rst_n) last_gnt <= 2'h0",
+  "fix_replacement": "logic [1:0] last_gnt;\nalways_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) last_gnt <= 2'h0;\n  else if (|gnt) last_gnt <= gnt_id;",
+  "description": "The priority pointer has no reset assignment; its power-on value is indeterminate, which can permanently bias arbitration toward whichever master happens to match the garbage initial value.",
+  "failure_log": "UVM_ERROR: [FAIRNESS] last_gnt=2'bxx at power-on; biased arbitration for first 100 cycles",
+  "success_log": "last_gnt=2'h0 after reset. Unbiased round-robin from first arbitration cycle.",
+  "valid_signals": [
+    "last_gnt",
+    "gnt",
+    "gnt_id",
+    "rst_n"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

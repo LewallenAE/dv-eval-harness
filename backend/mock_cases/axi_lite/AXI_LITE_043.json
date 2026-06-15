@@ -1,0 +1,25 @@
+{
+  "id": "AXI_LITE_043",
+  "title": "SVA Vacuous Success in READY Check",
+  "description": "An assertion checking that VALID leads to READY passes even when VALID is never asserted.",
+  "bug_signature": "UVM_INFO: Assertion ap_handshake passed 0 times (Vacuous)",
+  "expected_root_cause": "Implication operator (|->) used without a coverage check to ensure the antecedent was hit [6, 37].",
+  "expected_fix_contains": "cover property (awvalid)",
+  "failure_coverage": 0.0,
+  "success_coverage": 100.0,
+  "failure_log": "Test passed, but zero AWVALID transfers occurred.",
+  "success_log": "Assertion passed and coverage bin 'valid_asserted' hit.",
+  "rtl": "No RTL change needed.",
+  "fix_replacement": "assert property (@(posedge clk) awvalid |-> ##[1:5] awready); cover property (@(posedge clk) awvalid);",
+  "testbench": "task run(); #100; // No transfers endtask",
+  "forbidden_targets": [
+    "awready"
+  ],
+  "valid_signals": [
+    "awvalid"
+  ],
+  "metadata": {
+    "channel": "GEN",
+    "bug_type": "SVA"
+  }
+}

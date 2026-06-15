@@ -1,0 +1,27 @@
+{
+  "id": "RR_ARB_049",
+  "title": "Active Transaction ID Returns Last Grant Instead of Current",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 0,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [SBD_MISMATCH] Response routed to Master 0; active master was Master 1",
+  "rtl": "assign active_id = last_gnt;  // Returns previous winner \u2014 off by one",
+  "testbench": "task check(); drive_m0(); // SBD expects ID 0, got 1 endtask",
+  "expected_root_cause": "The active transaction ID register is assigned from last_gnt (the previous winner) rather than the currently active master ID; downstream response routing uses the stale pointer and directs responses to the wrong master.",
+  "expected_fix_contains": "assign active_id = current_gnt_id",
+  "fix_replacement": "assign active_id = current_gnt_id;  // Returns currently active master",
+  "description": "The transaction ID register reports `last_gnt` (the previous winner) instead of the currently active master, causing the downstream module to route responses to the wrong master.",
+  "failure_log": "UVM_ERROR: [SBD_MISMATCH] Response routed to Master 0; active master was Master 1",
+  "success_log": "active_id matches gnt vector. Responses correctly routed.",
+  "valid_signals": [
+    "active_id",
+    "last_gnt",
+    "current_gnt_id"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 35.0,
+  "success_coverage": 100.0
+}

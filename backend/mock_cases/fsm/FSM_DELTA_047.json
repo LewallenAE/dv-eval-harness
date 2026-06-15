@@ -1,0 +1,19 @@
+{
+  "id": "FSM_DELTA_047",
+  "title": "Delta Cycle Mismatch in Edge Detection",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "DETECT"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [FSM_VAL] Edge missed at cycle 50",
+  "rtl": "assign edge = sig & !sig_reg; always_ff @(posedge clk) sig_reg <= sig;",
+  "testbench": "initial force sig = 1; #10 release sig;",
+  "expected_root_cause": "Combinational edge detection is sampled by the FSM in the same cycle as the register update, leading to non-deterministic behavior [29, 42].",
+  "expected_fix_contains": "$rose(sig)",
+  "fix_replacement": "always_ff @(posedge clk) begin sig_q <= sig; if(sig && !sig_q) next_state = DETECT; end",
+  "description": "Simulation race condition where edge pulses are too narrow for the state machine to sample."
+}

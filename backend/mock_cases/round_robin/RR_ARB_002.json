@@ -1,0 +1,26 @@
+{
+  "id": "RR_ARB_002",
+  "title": "Priority Pointer Wrap-Around Error (3 Masters)",
+  "family": "round_robin",
+  "num_masters": 3,
+  "fairness_window": 10,
+  "sticky_until": "bvalid",
+  "bug_signature": "UVM_ERROR: [DEADLOCK] last_gnt=3 with no master at index 3; arbiter hung",
+  "rtl": "always_ff @(posedge clk)\n  if (gnt_done) last_gnt <= last_gnt + 1;  // Wraps to 3 for a 3-master design",
+  "testbench": "task check_fairness(); repeat(100) @(posedge clk); endtask",
+  "expected_root_cause": "The pointer increments unconditionally past the maximum master index (2), wrapping to index 3 which has no master, causing the arbiter to deadlock waiting for a non-existent request.",
+  "expected_fix_contains": "last_gnt == 2'h2) ? 2'h0 : last_gnt + 1",
+  "fix_replacement": "always_ff @(posedge clk)\n  if (gnt_done)\n    last_gnt <= (last_gnt == 2'h2) ? 2'h0 : last_gnt + 1;",
+  "description": "The pointer increments past master 2 and wraps to 3, an index with no master, causing the arbiter to stall waiting for a request that never comes.",
+  "failure_log": "UVM_ERROR: [DEADLOCK] last_gnt=3 with no master at index 3; arbiter hung",
+  "success_log": "Pointer cycles 0\u21921\u21922\u21920 correctly for 3 masters.",
+  "valid_signals": [
+    "last_gnt",
+    "gnt_done"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0
+}

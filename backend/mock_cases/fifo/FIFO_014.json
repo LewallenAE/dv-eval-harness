@@ -1,0 +1,25 @@
+{
+  "id": "FIFO_014",
+  "title": "FIFO Reset-to-Empty Lag",
+  "description": "Empty flag takes 1 clock cycle to rise after reset is deasserted.",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 8,
+  "depth": 4,
+  "pointer_width": 3,
+  "bug_signature": "UVM_ERROR: [SBD_EMPTY] FIFO not empty at T=20",
+  "expected_root_cause": "Empty flag is registered and updated only on the first clock after reset [1, 10].",
+  "expected_fix_contains": "assign empty = (wr_ptr == rd_ptr);",
+  "rtl": "always_ff @(posedge clk) empty <= (wr_ptr == rd_ptr);",
+  "testbench": "initial begin rst_n=0; #20; rst_n=1; end",
+  "failure_log": "T=21: rst_n=1. Empty=0. Master issued read and got X.",
+  "success_log": "Empty flag high immediately upon reset release.",
+  "fix_replacement": "assign empty = (wr_ptr == rd_ptr);",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "empty",
+    "rst_n"
+  ]
+}

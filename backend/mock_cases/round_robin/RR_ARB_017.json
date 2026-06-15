@@ -1,0 +1,27 @@
+{
+  "id": "RR_ARB_017",
+  "title": "Self-Locking Arbiter State (Missing Else Branch)",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 5,
+  "sticky_until": "done",
+  "bug_signature": "UVM_FATAL: [DEADLOCK] FSM stuck in IDLE with req[1]=1; Master 1 never granted",
+  "rtl": "always_comb begin\n  next_state = state;\n  if (state == IDLE && req[0]) next_state = GNT0;\n  // Missing: else if (req[1]) next_state = GNT1;\nend",
+  "testbench": "task check(); drive_m0(); disconnect_m0(); endtask",
+  "expected_root_cause": "The next-state combinational logic handles req[0] going to GNT0 but has no else-if branch for req[1]; when only master 1 requests, the FSM stays in IDLE indefinitely and master 1 is never served.",
+  "expected_fix_contains": "else if (state == IDLE && req[1]) next_state = GNT1",
+  "fix_replacement": "always_comb begin\n  next_state = state;\n  if      (state == IDLE && req[0]) next_state = GNT0;\n  else if (state == IDLE && req[1]) next_state = GNT1;\n  else if (state == GNT0 && !req[0]) next_state = IDLE;\n  else if (state == GNT1 && !req[1]) next_state = IDLE;\nend",
+  "description": "The next-state logic for GNT0 has no else branch, so when req[0] is low and req[1] is high the FSM stays in IDLE indefinitely instead of transitioning to GNT1.",
+  "failure_log": "UVM_FATAL: [DEADLOCK] FSM stuck in IDLE with req[1]=1; Master 1 never granted",
+  "success_log": "Master 1 granted within 2 cycles of asserting req[1].",
+  "valid_signals": [
+    "state",
+    "next_state",
+    "req"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

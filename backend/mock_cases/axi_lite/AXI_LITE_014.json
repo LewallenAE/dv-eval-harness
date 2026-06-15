@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_014",
+  "title": "Unregistered Combinational Loop in READY Logic",
+  "description": "AWREADY is driven by a combinational path that includes AWREADY itself as an input, creating a zero-delay combinational loop that causes simulation oscillation.",
+  "bug_signature": "VCS-ERROR: Combinational loop detected involving net 'awready'",
+  "expected_root_cause": "The READY generation logic creates a feedback path: `awready = !busy && awready` \u2014 a self-referential combinational expression [18].",
+  "expected_fix_contains": "awready <= !busy",
+  "failure_coverage": 0.0,
+  "success_coverage": 100.0,
+  "failure_log": "Elaboration error: combinational loop. Simulation delta-cycle oscillation.\nVCS-ERROR: awready undefined.",
+  "success_log": "awready updated on posedge clk only \u2014 no loop.",
+  "rtl": "assign awready = !busy && awready;",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n) if (!rst_n) awready <= 0; else awready <= !busy;",
+  "testbench": "initial begin #0; assert(awready !== 1'bx); end",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "awready",
+    "busy"
+  ],
+  "metadata": {
+    "channel": "AW",
+    "bug_type": "Synthesizability"
+  }
+}

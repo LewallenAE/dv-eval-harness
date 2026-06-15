@@ -1,0 +1,25 @@
+{
+  "id": "ARB_012",
+  "title": "Arbiter Partial Request Grant",
+  "description": "Arbiter grants Master 1 even though Master 1 only pulsed its request for a delta-cycle.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [PROT] Spurious transaction on GNT1",
+  "expected_root_cause": "Arbiter logic does not use a registered 'Request' signal, making it vulnerable to glitches [10].",
+  "expected_fix_contains": "always_ff @(posedge clk) req_q <= req;",
+  "rtl": "assign gnt = req & ~mask;",
+  "testbench": "initial begin #10.1; req=1; #0.01; req=0; end",
+  "failure_log": "GNT1 rose and fell in one cycle. Slave FSM corrupted.",
+  "success_log": "Arbiter ignores requests shorter than 1 clock cycle.",
+  "fix_replacement": "always_ff @(posedge clk) gnt <= next_gnt_comb;",
+  "forbidden_targets": [
+    "rst_n"
+  ],
+  "valid_signals": [
+    "req",
+    "gnt"
+  ]
+}

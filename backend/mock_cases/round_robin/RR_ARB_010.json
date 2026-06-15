@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_010",
+  "title": "Asynchronous Clear Hazard on Grant Register",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 4,
+  "sticky_until": "ready",
+  "bug_signature": "UVM_ERROR: [META] gnt=4'bxxxx after async clr pulse; metastability detected",
+  "rtl": "always_ff @(posedge clk or posedge clr)\n  if (clr) gnt <= 4'h0;\n  else     gnt <= next_gnt;  // clr is async \u2014 metastability risk",
+  "testbench": "initial begin clr=1; #10.2 clr=0; end",
+  "expected_root_cause": "The grant register uses an asynchronous clear driven directly by an external signal without a synchronizer; if clr transitions near the clock edge the register enters metastability and gnt becomes unknown.",
+  "expected_fix_contains": "clr_q1 <= clr",
+  "fix_replacement": "// Synchronize clr into clk domain first\nalways_ff @(posedge clk) begin\n  clr_q1 <= clr;\n  clr_q2 <= clr_q1;\nend\nalways_ff @(posedge clk)\n  if (clr_q2) gnt <= 4'h0;\n  else        gnt <= next_gnt;",
+  "description": "The grant register uses an asynchronous clear driven by an unregistered external signal, causing metastability glitches when clr arrives asynchronously to clk.",
+  "failure_log": "UVM_ERROR: [META] gnt=4'bxxxx after async clr pulse; metastability detected",
+  "success_log": "clr synchronized. gnt stable and known-good after synchronized clear event.",
+  "valid_signals": [
+    "gnt",
+    "clr",
+    "clr_q1",
+    "clr_q2"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 10.0,
+  "success_coverage": 100.0
+}

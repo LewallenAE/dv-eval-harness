@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_038",
+  "title": "SVA $past() Misuse in Handshake",
+  "description": "An assertion checks the value of AWADDR at the current cycle instead of the cycle where AWVALID rose.",
+  "bug_signature": "UVM_ERROR: [SVA_ERR] AWADDR check failed (checking stale value)",
+  "expected_root_cause": "The assertion logic fails to use the $past() function to sample the address at the start of the handshake [6, 28].",
+  "expected_fix_contains": "$past(awaddr)",
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0,
+  "failure_log": "AWVALID rose at T=10, Address changed at T=20.\nAssertion checked T=20 and failed.",
+  "success_log": "Assertion correctly samples AWADDR at the rise of AWVALID.",
+  "rtl": "No RTL change needed.",
+  "fix_replacement": "assert property (@(posedge clk) awready |-> awaddr == $past(awaddr, 1));",
+  "testbench": "task run(); drive_aw(0x1000); @(posedge clk); drive_aw(0x2000); endtask",
+  "forbidden_targets": [
+    "awready"
+  ],
+  "valid_signals": [
+    "awvalid",
+    "awaddr"
+  ],
+  "metadata": {
+    "channel": "AW",
+    "bug_type": "SVA"
+  }
+}

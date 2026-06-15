@@ -1,0 +1,25 @@
+{
+  "id": "FIFO_015",
+  "title": "FIFO Power-of-Two Depth Constraint",
+  "description": "FIFO instantiated with depth 10, causing pointer wrap to 0 before hitting 15.",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 32,
+  "depth": 10,
+  "pointer_width": 4,
+  "bug_signature": "UVM_ERROR: [SBD_EMPTY] Empty flag low when FIFO is empty",
+  "expected_root_cause": "Binary pointers only work for depths that are powers of two; otherwise, wrap logic is complex [1].",
+  "expected_fix_contains": "initial assert(is_power_of_two(DEPTH));",
+  "rtl": "assign full = (wr_ptr == rd_ptr + 10);",
+  "testbench": "task run(); push(10); pop(10); endtask",
+  "failure_log": "After 10 words, pointers are 10 and 10. WR_PTR wraps to 0 at 16. Mismatch.",
+  "success_log": "Depth changed to 16. Binary pointer logic holds.",
+  "fix_replacement": "parameter DEPTH = 16;",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "wr_ptr",
+    "rd_ptr"
+  ]
+}

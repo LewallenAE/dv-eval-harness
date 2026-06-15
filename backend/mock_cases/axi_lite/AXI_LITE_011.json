@@ -1,0 +1,27 @@
+{
+  "id": "AXI_LITE_011",
+  "title": "Byte Enable Misalignment on 16-bit Slave",
+  "description": "A 16-bit aligned write with WSTRB=4'b0011 is routed to a 16-bit slave but the strobe bits are not remapped, causing the upper byte to be written instead of the lower.",
+  "bug_signature": "UVM_ERROR: [SBD_DATA] Byte 1 written to offset 0; Byte 0 not written",
+  "expected_root_cause": "Strobe remapping for sub-word slave widths is missing; the lower 2 bits of WSTRB must be selected for a 16-bit lower-half transfer [14, 15].",
+  "expected_fix_contains": "assign s_wstrb = wstrb[1:0]",
+  "failure_coverage": 70.0,
+  "success_coverage": 100.0,
+  "failure_log": "Master WSTRB=4'b0011. Slave_WSTRB=4'b0011 (unremapped for 16-bit).\nUVM_ERROR: Upper byte written instead of lower.",
+  "success_log": "WSTRB correctly remapped for 16-bit slave interface.",
+  "rtl": "assign s_wstrb = wstrb;",
+  "fix_replacement": "assign s_wstrb = (addr[1]) ? wstrb[3:2] : wstrb[1:0];",
+  "testbench": "task run(); `uvm_do_with(req, {wstrb == 4'b0011; addr == 16'h1000;}) endtask",
+  "forbidden_targets": [
+    "wdata"
+  ],
+  "valid_signals": [
+    "wstrb",
+    "s_wstrb",
+    "addr"
+  ],
+  "metadata": {
+    "channel": "W",
+    "bug_type": "Sizing"
+  }
+}

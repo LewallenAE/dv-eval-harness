@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_027",
+  "title": "Moore Output Late by One Cycle (Registered State)",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [TIMING] gnt asserted 1 cycle after FSM enters GNT_STATE; handshake missed",
+  "rtl": "always_ff @(posedge clk)\n  gnt <= (state == GNT_STATE) ? gnt_vec : 4'h0;  // Output lags state by 1",
+  "testbench": "task check(); wait(state == GNT_STATE); endtask",
+  "expected_root_cause": "The grant output register is clocked from the current FSM state; since the output lags the state by one pipeline stage, the downstream handshake partner sees the grant one cycle after the FSM enters the grant state and misses the intended transfer window.",
+  "expected_fix_contains": "gnt <= (next_state == GNT_STATE)",
+  "fix_replacement": "// Lookahead: derive output from next_state, not state\nalways_ff @(posedge clk)\n  gnt <= (next_state == GNT_STATE) ? gnt_vec : 4'h0;",
+  "description": "The grant output is registered from the current state, adding one pipeline stage; downstream logic receives the grant one cycle too late relative to the FSM transition.",
+  "failure_log": "UVM_ERROR: [TIMING] gnt asserted 1 cycle after FSM enters GNT_STATE; handshake missed",
+  "success_log": "gnt appears in the same cycle as FSM state transition. Handshake correct.",
+  "valid_signals": [
+    "gnt",
+    "state",
+    "next_state",
+    "gnt_vec"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 45.0,
+  "success_coverage": 100.0
+}

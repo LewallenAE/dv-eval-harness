@@ -1,0 +1,16 @@
+{
+  "id": "spi_cpol_cpha_bug",
+  "title": "SPI Master — Wrong Clock Polarity (CPOL=1 mode)",
+  "rtl": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) sclk <= 1'b0;\n  else        sclk <= clk_en ? ~sclk : 1'b0;",
+  "bug_signature": "UVM_ERROR: [SPI] MISO sampled on wrong edge; CPOL=1 requires idle-high clock, got idle-low",
+  "expected_root_cause": "The SPI clock idles low (sclk=0 on reset) but CPOL=1 mode requires the clock to idle high; data is therefore sampled on the wrong edge and all received bytes are corrupt.",
+  "testbench": "// SPI monitor checks sclk idle state between CS assertions\nassert property (@(posedge clk) !cs_n |-> sclk == CPOL);",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) sclk <= 1'b1;\n  else        sclk <= clk_en ? ~sclk : 1'b1;",
+  "expected_fix_contains": "if (!rst_n) sclk <= 1'b1",
+  "valid_signals": ["sclk", "clk_en", "rst_n", "cs_n"],
+  "forbidden_targets": ["mosi", "miso"],
+  "failure_log": "UVM_ERROR: [SPI] MISO sampled on wrong edge; CPOL=1 requires idle-high clock, got idle-low",
+  "success_log": "sclk idles high between CS assertions. MISO sampled on correct falling edge.",
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0
+}

@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_034",
+  "title": "Sequential Grant-Ready Combinational Loop",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 10,
+  "sticky_until": "ready",
+  "bug_signature": "VCS-ERROR: Combinational loop: gnt \u2192 ready \u2192 gnt; simulation delta-cycle divergence",
+  "rtl": "always_ff @(posedge clk)\n  if (ready) gnt <= next_gnt;  // ready is derived from gnt \u2014 loop",
+  "testbench": "task check(); force ready = 0; endtask",
+  "expected_root_cause": "The always_ff block gates the grant update on the ready signal, but ready is itself combinationally derived from gnt; this creates a combinational feedback loop that causes simulation delta-cycle divergence and synthesis to generate unwanted latches.",
+  "expected_fix_contains": "ready_r <= ready",
+  "fix_replacement": "// Break loop: use registered ready\nalways_ff @(posedge clk) ready_r <= ready;\nalways_ff @(posedge clk)\n  if (ready_r) gnt <= next_gnt;",
+  "description": "A sequential path from `ready` back to the grant selection creates a combinational loop: ready depends on gnt, gnt depends on ready, causing simulation oscillation.",
+  "failure_log": "VCS-ERROR: Combinational loop: gnt \u2192 ready \u2192 gnt; simulation delta-cycle divergence",
+  "success_log": "Registered ready breaks loop. Simulation converges in one delta cycle.",
+  "valid_signals": [
+    "gnt",
+    "ready",
+    "ready_r",
+    "next_gnt"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 0.0,
+  "success_coverage": 100.0
+}

@@ -1,0 +1,20 @@
+{
+  "id": "FSM_CDC_005",
+  "title": "Asynchronous Input Glitch in State Machine",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "gray",
+  "state_enum": [
+    "IDLE",
+    "ACTIVE",
+    "WAIT"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SVA_VIOLATION] FSM entered illegal state 2'b11",
+  "rtl": "always_comb if (ext_signal) next = ACTIVE;",
+  "testbench": "initial #10.2 ext_signal = 1; #0.1 ext_signal = 0;",
+  "expected_root_cause": "An unsynchronized external signal sampled near the clock edge caused a metastable transition in the FSM [10, 11].",
+  "expected_fix_contains": "always_ff @(posedge clk) signal_sync <= ext_signal;",
+  "fix_replacement": "always_ff @(posedge clk) begin q1 <= ext_signal; q2 <= q1; end assign synchronized_sig = q2;",
+  "description": "Clock domain crossing failure where a glitch triggers an unintended state transition."
+}

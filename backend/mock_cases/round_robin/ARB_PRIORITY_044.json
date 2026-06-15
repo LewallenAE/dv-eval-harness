@@ -1,0 +1,16 @@
+{
+  "id": "ARB_PRIORITY_044",
+  "title": "Arbiter Mask Incrementer Overflow",
+  "family": "round_robin",
+  "machine_type": "mealy",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [FAIRNESS] Master 0 always wins after cycle 100",
+  "rtl": "always_ff @(posedge clk) last_gnt <= last_gnt + 1;",
+  "testbench": "initial begin NUM_MASTERS = 3; end",
+  "expected_root_cause": "Priority pointer increments past the number of masters, causing the rotation logic to fail or wrap inconsistently [1, 8].",
+  "expected_fix_contains": "last_gnt <= (last_gnt + 1) % NUM_MASTERS",
+  "fix_replacement": "always_ff @(posedge clk) if(any_gnt) last_gnt <= (current_gnt == 2) ? 0 : current_gnt + 1;",
+  "description": "Fairness bug where the priority rotation pointer enters an illegal range."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "FIFO_001",
+  "title": "FIFO MSB Pointer Wrap-around Bug",
+  "description": "The full flag fails to assert because the MSB of the pointers is not compared.",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 32,
+  "depth": 16,
+  "pointer_width": 5,
+  "bug_signature": "UVM_ERROR: [SBD_DATA] Data mismatch at index 0 (Overwritten)",
+  "expected_root_cause": "Full flag logic only checks lower bits, allowing the write pointer to wrap and overwrite old data [1].",
+  "expected_fix_contains": "assign full = (wr_ptr[ADDR_W] != rd_ptr[ADDR_W]) && (wr_ptr[ADDR_W-1:0] == rd_ptr[ADDR_W-1:0])",
+  "rtl": "assign full = (wr_ptr[3:0] == rd_ptr[3:0]);",
+  "testbench": "task run(); repeat(20) push_data(); endtask",
+  "failure_log": "T=170: wr_ptr=0x10, rd_ptr=0x00. Full=0. Overwriting address 0.",
+  "success_log": "T=160: Full asserted at depth 16. Push blocked.",
+  "fix_replacement": "assign full = (wr_ptr[8] != rd_ptr[8]) && (wr_ptr[3:0] == rd_ptr[3:0]);",
+  "forbidden_targets": [
+    "clk",
+    "rst_n"
+  ],
+  "valid_signals": [
+    "full",
+    "empty",
+    "wr_ptr",
+    "rd_ptr"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "FSM_ Moore_049",
+  "title": "Moore Output Mismatch during State Transition",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "S0",
+    "S1"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SVA_ERR] OUT high in state S0",
+  "rtl": "assign fsm_out = (state == S1);",
+  "testbench": "initial begin state = S1; #1 state = S0; end",
+  "expected_root_cause": "The output is purely combinational based on state; during reset or forcing, the output can pulse incorrectly [5, 15].",
+  "expected_fix_contains": "always_ff @(posedge clk) fsm_out <= (next_state == S1)",
+  "fix_replacement": "always_ff @(posedge clk) if(!rst_n) fsm_out <= 0; else fsm_out <= (next_state == S1);",
+  "description": "Timing hazard where state transitions create glitchy combinational outputs."
+}

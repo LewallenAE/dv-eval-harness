@@ -1,0 +1,25 @@
+{
+  "id": "AXI_LITE_012",
+  "title": "FSM One-Hot Encoding Fault in Crossbar State Machine",
+  "description": "The crossbar transaction FSM uses one-hot encoding but the synthesis tool infers a binary encoder, causing illegal state combinations on power-up.",
+  "bug_signature": "UVM_ERROR: [FSM_STATE] Multiple one-hot bits active simultaneously: state=3'b011",
+  "expected_root_cause": "The FSM state register is missing the `(* fsm_encoding = \"one_hot\" *)` synthesis attribute, defaulting to auto-encoding which may choose binary [16].",
+  "expected_fix_contains": "(* fsm_encoding = \"one_hot\" *)",
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0,
+  "failure_log": "Post-synthesis simulation: state=3'b011 at T=0 (power-up).\nUVM_ERROR: Illegal one-hot state.",
+  "success_log": "FSM in IDLE (3'b001) immediately after reset.",
+  "rtl": "reg [2:0] state;",
+  "fix_replacement": "(* fsm_encoding = \"one_hot\" *) reg [2:0] state;",
+  "testbench": "initial begin rst_n=0; #10; rst_n=1; @(posedge clk); assert($onehot(state)); end",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "state"
+  ],
+  "metadata": {
+    "channel": "GEN",
+    "bug_type": "Synthesizability"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_004",
+  "title": "Sticky Grant Violation \u2014 Grant Drops During Transaction",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 10,
+  "sticky_until": "bvalid",
+  "bug_signature": "UVM_ERROR: [STICKY] gnt de-asserted while bus_busy=1; transaction truncated",
+  "rtl": "assign gnt = req & mask;  // Combinational: grant follows req immediately",
+  "testbench": "task check_fairness(); drive_long_write(M0); drive_req(M1); endtask",
+  "expected_root_cause": "The grant is a combinational function of req and mask with no registered hold; it de-asserts immediately when req drops even during an active bus transaction, violating the sticky-grant rule.",
+  "expected_fix_contains": "if (bus_busy) gnt <= gnt",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)          gnt <= 4'h0;\n  else if (bus_busy)   gnt <= gnt;      // Hold during active transaction\n  else                 gnt <= req & mask;",
+  "description": "The grant de-asserts as soon as the request drops, even if the bus transaction is still in progress, violating the AXI sticky-grant rule.",
+  "failure_log": "UVM_ERROR: [STICKY] gnt de-asserted while bus_busy=1; transaction truncated",
+  "success_log": "Grant held stable throughout transaction. Released only after bus_busy clears.",
+  "valid_signals": [
+    "gnt",
+    "req",
+    "mask",
+    "bus_busy"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 40.0,
+  "success_coverage": 100.0
+}

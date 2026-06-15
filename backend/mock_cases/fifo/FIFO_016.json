@@ -1,0 +1,25 @@
+{
+  "id": "FIFO_016",
+  "title": "FIFO Synchronous Clear Failure",
+  "description": "Clear signal resets pointers but fails to clear the data memory, leading to stale data on next push.",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 32,
+  "depth": 8,
+  "pointer_width": 4,
+  "bug_signature": "UVM_ERROR: [SBD_DATA] Stale data 0x55 read from FIFO after clear",
+  "expected_root_cause": "Scoreboard assumes memory is cleared, but RTL only resets pointers [1, 6].",
+  "expected_fix_contains": "if (clr) for(i=0; i<DEPTH; i++) mem[i] <= 0;",
+  "rtl": "if (clr) begin wr_ptr <= 0; rd_ptr <= 0; end",
+  "testbench": "task run(); push(0x55); clr=1; #10; push(0xAA); pop(); endtask",
+  "failure_log": "T=50: Word 1 popped. Got 0x55 (Stale). Expected 0xAA.",
+  "success_log": "Scoreboard updated to reflect that memory is NOT cleared on pointer reset.",
+  "fix_replacement": "No RTL change; Update UVM Predictor to handle non-destructive clear.",
+  "forbidden_targets": [
+    "mem"
+  ],
+  "valid_signals": [
+    "clr",
+    "rd_data"
+  ]
+}

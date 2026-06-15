@@ -1,0 +1,5 @@
+{
+  "id": "uart_baud_div_bug",
+  "rtl": "always_ff @(posedge clk)\n  baud_tick <= (baud_div == BAUD_RATE - 2);",
+  "bug_signature": "UVM_ERROR: [UART] Baud tick fires one cycle early; byte framing off by 1 bit"
+}

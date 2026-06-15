@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_022",
+  "title": "Priority Mask Shadows Master 0 Permanently",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 4,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [STARVE] Master 0 never granted; mask always excludes bit 0",
+  "rtl": "always_comb begin\n  mask = (4'hF << last_gnt);  // Includes last_gnt in mask \u2014 M0 shadowed\n  masked_req = req & mask;\nend",
+  "testbench": "task check(); req = 4'b1111; endtask",
+  "expected_root_cause": "The rotating mask is computed as (4'hF << last_gnt), which includes last_gnt itself in the masked-out set; master 0 (last_gnt=0) is excluded from every arbitration round because bit 0 is always in the mask.",
+  "expected_fix_contains": "mask = (4'hF << (last_gnt + 1))",
+  "fix_replacement": "always_comb begin\n  mask = (4'hF << (last_gnt + 1)) | (4'hF >> (4 - last_gnt - 1));\n  masked_req = req & mask;  // Excludes last_gnt; starts from next master\nend",
+  "description": "The rotating mask uses `1 << last_gnt` which includes the current master in the lower-priority set; master 0 is masked out whenever last_gnt \u2265 0, which is always.",
+  "failure_log": "UVM_ERROR: [STARVE] Master 0 never granted; mask always excludes bit 0",
+  "success_log": "Rotating mask starts after last_gnt. Master 0 granted in correct turn.",
+  "valid_signals": [
+    "mask",
+    "masked_req",
+    "last_gnt",
+    "req"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 10.0,
+  "success_coverage": 95.0
+}

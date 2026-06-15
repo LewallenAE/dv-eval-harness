@@ -1,0 +1,26 @@
+{
+  "id": "FSM_012",
+  "title": "FSM Clock-Enable Skew",
+  "description": "FSM next_state is updated on posedge clock, but the 'enable' signal arrives one delta-cycle late.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [FSM_MISS] State transition missed",
+  "expected_root_cause": "Race condition between clock-enable and clock edge in simulation [23].",
+  "expected_fix_contains": "always_ff @(posedge clk) if (en_sync) state <= next_state;",
+  "rtl": "always_ff @(posedge clk) if (en) state <= next_state;",
+  "testbench": "initial begin #10; en = 1; end // Clock edge also at 10",
+  "failure_log": "T=10: Clock rose. 'en' was sampled as 0. Transition delayed to cycle 20.",
+  "success_log": "Enable signal stable before clock edge via clocking block.",
+  "fix_replacement": "clocking cb @(posedge clk); output en; endclocking",
+  "forbidden_targets": [
+    "rst_n"
+  ],
+  "valid_signals": [
+    "clk",
+    "en",
+    "state"
+  ]
+}

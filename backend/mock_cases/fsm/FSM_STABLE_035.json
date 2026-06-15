@@ -1,0 +1,19 @@
+{
+  "id": "FSM_STABLE_035",
+  "title": "SVA Stability Check Failure on Reset",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "BUSY"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SVA_ERR] Signal changed while reset active",
+  "rtl": "No RTL bug; Assertion bug.",
+  "testbench": "initial begin reset = 1; #5 data = 1; end",
+  "expected_root_cause": "The assertion checks for stability without excluding the reset period, leading to false failures [21, 37].",
+  "expected_fix_contains": "disable iff (reset)",
+  "fix_replacement": "assert property (@(posedge clk) disable iff (reset) valid |-> $stable(data));",
+  "description": "Verification environment bug where reset transitions trigger false-positive assertions."
+}

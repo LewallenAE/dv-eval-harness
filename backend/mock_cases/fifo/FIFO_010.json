@@ -1,0 +1,26 @@
+{
+  "id": "FIFO_010",
+  "title": "FIFO Multi-bit Pointer CDC Error",
+  "description": "Binary pointers are passed directly between domains, causing occasional 1-word data loss.",
+  "family": "fifo_buffer",
+  "clock_domain": "async",
+  "data_width": 32,
+  "depth": 64,
+  "pointer_width": 7,
+  "bug_signature": "UVM_ERROR: [SBD_SIZE] FIFO count mismatch in Write Domain",
+  "expected_root_cause": "Lack of Gray-code pointers leads to multi-bit instability during CDC [15].",
+  "expected_fix_contains": "gray2bin(rd_ptr_sync)",
+  "rtl": "assign empty = (wr_ptr == rd_ptr_sync_binary);",
+  "testbench": "task run(); drive_max_rate(); endtask",
+  "failure_log": "rd_ptr transitioned 1 to 2 (binary 01 to 10). Sync domain saw 00. False empty.",
+  "success_log": "Gray code ensures CDC sees at most 1-word delay, no corruption.",
+  "fix_replacement": "ptr_gray <= ptr_bin ^ (ptr_bin >> 1);",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "wr_ptr",
+    "rd_ptr",
+    "empty"
+  ]
+}

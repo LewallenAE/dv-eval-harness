@@ -1,0 +1,27 @@
+{
+  "id": "FIFO_005",
+  "title": "FIFO Gray Code Sync Error (Async)",
+  "description": "Read pointer synchronization into write domain causes glitch due to binary encoding.",
+  "family": "fifo_buffer",
+  "clock_domain": "async",
+  "data_width": 16,
+  "depth": 32,
+  "pointer_width": 6,
+  "bug_signature": "UVM_ERROR: [SBD_MISMATCH] Metastable data corruption in CDC",
+  "expected_root_cause": "Pointers are synchronized across clock domains using binary encoding rather than Gray code [15, 16].",
+  "expected_fix_contains": "bin2gray(wr_ptr)",
+  "rtl": "assign wr_ptr_sync = wr_ptr_bin;",
+  "testbench": "task run(); fork push_fast(); sync_slow(); join endtask",
+  "failure_log": "Binary transition 0111 to 1000 sampled as 1111 during clock edge mismatch.",
+  "success_log": "Single-bit Gray code transition ensures stable CDC sampling.",
+  "fix_replacement": "assign wr_ptr_gray = wr_ptr ^ (wr_ptr >> 1);",
+  "forbidden_targets": [
+    "rst_n"
+  ],
+  "valid_signals": [
+    "wr_ptr",
+    "wr_ptr_sync",
+    "clk_w",
+    "clk_r"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "FSM_ONE_HOT_006",
+  "title": "Multiple Bits Set in One-Hot FSM",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "one_hot",
+  "state_enum": [
+    "RESET",
+    "IDLE",
+    "LOAD",
+    "DONE"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_FATAL: [SVA_1HOT] State vector not one-hot: 4'b0011",
+  "rtl": "always_ff @(posedge clk) if(set_idle) state[7] <= 1; if(set_load) state[12] <= 1;",
+  "testbench": "initial begin set_idle = 1; set_load = 1; end",
+  "expected_root_cause": "Independent flip-flop assignments allow multiple bits of a one-hot vector to be high simultaneously [13, 14].",
+  "expected_fix_contains": "assert property (@(posedge clk) $onehot(state))",
+  "fix_replacement": "always_ff @(posedge clk) state <= next_state; // next_state calculated in single always_comb",
+  "description": "Violation of one-hot encoding invariants in a state register."
+}

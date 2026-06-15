@@ -1,0 +1,26 @@
+{
+  "id": "FSM_016",
+  "title": "FSM Ghost State Transition",
+  "description": "FSM transitions to state 1 even when the transition condition is only half-met.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [SVA_FSM] Transition IDLE->RUN with START=0",
+  "expected_root_cause": "Next-state logic uses bitwise '&' instead of logical '&&' for multi-bit conditions [26].",
+  "expected_fix_contains": "if (start && !stall)",
+  "rtl": "if (start & ~stall) // start is 2-bit, stall is 1-bit",
+  "testbench": "initial begin start=2'b10; stall=1; #10; end",
+  "failure_log": "2'b10 & 1'b0 = 2'b00. FSM jumped erroneously due to bitwise truncation.",
+  "success_log": "Logical operator ensures correct evaluation of condition vector.",
+  "fix_replacement": "if (start == 2'b11 && !stall) next_state = RUN;",
+  "forbidden_targets": [
+    "rst_n"
+  ],
+  "valid_signals": [
+    "start",
+    "stall",
+    "state"
+  ]
+}

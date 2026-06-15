@@ -1,0 +1,16 @@
+{
+  "id": "FIFO_FULL_ERR_042",
+  "title": "FIFO False Empty Assertion During Pop",
+  "family": "fifo_buffer",
+  "machine_type": "n/a",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SVA_ERR] Empty high but data in buffer",
+  "rtl": "assign empty = (wr_ptr[3:0] == rd_ptr[3:0]);",
+  "testbench": "task run(); repeat(16) push(); pop(); endtask",
+  "expected_root_cause": "Empty logic does not check the MSB, causing the flag to assert when the buffer is full (pointers equal) [6].",
+  "expected_fix_contains": "assign empty = (wr_ptr == rd_ptr)",
+  "fix_replacement": "assign empty = (wr_ptr == rd_ptr); // wr_ptr and rd_ptr include extra bit",
+  "description": "Logic error where 'Full' and 'Empty' states are indistinguishable to the hardware."
+}

@@ -1,0 +1,25 @@
+{
+  "id": "ARB_017",
+  "title": "Arbiter Livelock on Simultaneous Grant Revoke",
+  "description": "When two masters simultaneously drop their requests at the same cycle the grant was updated, the arbiter pointer skips both and enters a livelock loop.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_FATAL: [LIVELOCK] Grant pointer cycles without any transaction completing",
+  "expected_root_cause": "The grant pointer update and request de-assertion happen in the same cycle; the combinational path skips both deasserted requests, cycling indefinitely [4, 17].",
+  "expected_fix_contains": "if (gnt_valid && req[gnt_ptr])",
+  "rtl": "always_ff @(posedge clk) if (!req[gnt_ptr]) gnt_ptr <= gnt_ptr + 1;",
+  "testbench": "task run(); fork m0.assert_req(); m1.assert_req(); #20; m0.deassert(); m1.deassert(); join endtask",
+  "failure_log": "T=100: REQ0=0, REQ1=0. GNT_PTR cycling. No transaction. Timeout.",
+  "success_log": "Arbiter returns to IDLE with no transaction when all requests drop simultaneously.",
+  "fix_replacement": "always_ff @(posedge clk) if (any_req) gnt_ptr <= next_ptr_with_req; else gnt_ptr <= gnt_ptr;",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "gnt_ptr",
+    "req"
+  ]
+}

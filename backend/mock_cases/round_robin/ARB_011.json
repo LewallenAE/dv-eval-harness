@@ -1,0 +1,30 @@
+{
+  "id": "ARB_011",
+  "title": "Arbiter Grant Starvation \u2014 No Timeout on Held Grant",
+  "description": "Master 0 holds the bus indefinitely while master0_busy is high; without a watchdog timer, master 1 can be starved permanently if master 0 never releases the bus.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [STARVE] Master 1 not granted for 10000 cycles; master0_busy stuck high",
+  "expected_root_cause": "The grant logic suppresses the grant to master 0 when master0_busy is high, but there is no watchdog timer to cap how long master 0 can hold the bus; a permanently asserted master0_busy starves master 1 indefinitely.",
+  "expected_fix_contains": "assign force_revoke = (timer > 8'd200)",
+  "rtl": "assign gnt = (last_gnt == 1'b0 && master0_busy) ? 1'b0 : last_gnt;\n// No timeout \u2014 master 1 starved if master0_busy stuck high",
+  "testbench": "task run(); m0.hang_bus(); #1000; endtask",
+  "failure_log": "UVM_ERROR: [STARVE] Master 1 not granted for 10000 cycles; master0_busy stuck high",
+  "success_log": "force_revoke fires after 201 cycles. Master 1 granted on next arbitration cycle.",
+  "fix_replacement": "logic [7:0] timer;\nalways_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)      timer <= 8'h0;\n  else if (gnt)    timer <= timer + 1;\n  else             timer <= 8'h0;\nassign force_revoke = (timer > 8'd200);\nassign gnt = (last_gnt == 1'b0 && master0_busy && !force_revoke) ? 1'b0 : last_gnt;",
+  "forbidden_targets": [
+    "req"
+  ],
+  "valid_signals": [
+    "gnt",
+    "last_gnt",
+    "master0_busy",
+    "timer",
+    "force_revoke"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 95.0
+}

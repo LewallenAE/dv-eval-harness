@@ -1,0 +1,19 @@
+{
+  "id": "FSM_CASEZ_ERR_045",
+  "title": "Casez Priority Reversal Bug",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "RUN"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [FSM_STATE] Reset took priority over Start",
+  "rtl": "casez(ctrl) 4'b???1: next=RUN; 4'b??1?: next=IDLE; endcase",
+  "testbench": "initial ctrl = 4'b0011;",
+  "expected_root_cause": "The casez statement has unintentional priority order; 'RUN' matches before 'IDLE' due to item position [17, 20].",
+  "expected_fix_contains": "unique casez (ctrl)",
+  "fix_replacement": "if(ctrl[7]) next=IDLE; else if(ctrl) next=RUN;",
+  "description": "Functional bug where overlapping wildcards cause the wrong logic branch to execute."
+}

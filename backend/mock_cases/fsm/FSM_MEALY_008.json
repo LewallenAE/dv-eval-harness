@@ -1,0 +1,19 @@
+{
+  "id": "FSM_MEALY_008",
+  "title": "Mealy Output Glitch in Combinational Path",
+  "family": "fsm_controller",
+  "machine_type": "mealy",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "EXEC"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SVA_GLITCH] FSM_OUT changed mid-cycle",
+  "rtl": "assign fsm_out = (state == EXEC) && input_valid;",
+  "testbench": "initial #15 input_valid = 0; #1 input_valid = 1;",
+  "expected_root_cause": "The Mealy output depends directly on an asynchronous input, allowing input glitches to propagate to the module output [15].",
+  "expected_fix_contains": "always_ff @(posedge clk) fsm_out_q <= fsm_out_next;",
+  "fix_replacement": "always_ff @(posedge clk) fsm_out_reg <= (next_state == EXEC) && next_input_valid;",
+  "description": "Timing violation where an asynchronous input creates a combinational glitch on a control signal."
+}

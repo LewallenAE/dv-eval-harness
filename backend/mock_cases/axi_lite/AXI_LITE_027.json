@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_027",
+  "title": "Data Width Mismatch Corruption",
+  "description": "Crossbar routes 32-bit data to a 16-bit Slave interface without proper truncation or error handling.",
+  "bug_signature": "UVM_ERROR: [SBD_DATA] Upper bits 31:16 lost during transfer to S0",
+  "expected_root_cause": "Port mapping in the crossbar instantiates a 16-bit port for a 32-bit internal bus, causing implicit truncation [12, 13].",
+  "expected_fix_contains": "assign s0_wdata = wdata[15:0]",
+  "failure_coverage": 65.0,
+  "success_coverage": 100.0,
+  "failure_log": "WDATA=0xDEADBEEF -> Slave_WDATA=0xBEEF\nUVM_ERROR: Data loss detected.",
+  "success_log": "WDATA=0xDEADBEEF -> Error generated or data handled correctly.",
+  "rtl": "slave_16bit s0 (.data(wdata)); // Implicit truncation",
+  "fix_replacement": "slave_16bit s0 (.data(wdata[15:0])); // Explicit mapping",
+  "testbench": "task run(); `uvm_do_with(req, {wdata == 32'hDEADBEEF;}) endtask",
+  "forbidden_targets": [
+    "wdata"
+  ],
+  "valid_signals": [
+    "wdata",
+    "s0_wdata"
+  ],
+  "metadata": {
+    "channel": "W",
+    "bug_type": "Sizing"
+  }
+}

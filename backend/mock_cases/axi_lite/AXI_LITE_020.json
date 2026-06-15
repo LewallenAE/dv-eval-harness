@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_020",
+  "title": "Slave Timeout Register Not Accessible via Crossbar",
+  "description": "A configuration register at 0x0FF0 (slave timeout control) is never accessible because the crossbar's upper address bound check uses a strict less-than instead of less-than-or-equal.",
+  "bug_signature": "UVM_ERROR: [DECERR] Address 0x0FF0 generated DECERR but is in the valid S0 range",
+  "expected_root_cause": "The boundary check `addr < 16'h1000` excludes address 0x0FF0 from the valid S0 range when it should be included [5, 26].",
+  "expected_fix_contains": "addr <= 16'h0FFF",
+  "failure_coverage": 55.0,
+  "success_coverage": 100.0,
+  "failure_log": "ADDR=0x0FF0. Crossbar check: 0x0FF0 < 0x1000 = True (should be selected). ERROR: Route sent to DECERR.\nUVM_ERROR: Off-by-one in boundary check.",
+  "success_log": "0x0FF0 routes to S0; register accessible and returns correct value.",
+  "rtl": "assign sel_s0 = (addr >= 16'h0000) && (addr < 16'h0FF0);",
+  "fix_replacement": "assign sel_s0 = (addr >= 16'h0000) && (addr <= 16'h0FFF);",
+  "testbench": "task run(); drive_read(16'h0FF0); endtask",
+  "forbidden_targets": [
+    "sel_s0"
+  ],
+  "valid_signals": [
+    "addr",
+    "sel_s0"
+  ],
+  "metadata": {
+    "channel": "ADDR",
+    "bug_type": "Decoding"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "RR_ARB_014",
+  "title": "Round-Robin Skip-Ahead Bug (Increments by 2)",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 4,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [FAIRNESS] Masters 1 and 3 skipped every arbitration cycle",
+  "rtl": "always_ff @(posedge clk)\n  if (gnt_done) last_gnt <= last_gnt + 2;  // Should be +1",
+  "testbench": "task check(); drive_all(); endtask",
+  "expected_root_cause": "The round-robin pointer increments by 2 after each grant (last_gnt + 2) instead of 1, causing every other master (indices 1 and 3 in a 4-master design) to be permanently skipped.",
+  "expected_fix_contains": "last_gnt <= last_gnt + 1",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)    last_gnt <= 2'h0;\n  else if (gnt_done) last_gnt <= last_gnt + 1;",
+  "description": "The priority pointer advances by 2 each grant cycle instead of 1, causing every other master to be permanently skipped.",
+  "failure_log": "UVM_ERROR: [FAIRNESS] Masters 1 and 3 skipped every arbitration cycle",
+  "success_log": "Pointer advances by 1. All 4 masters granted in sequence.",
+  "valid_signals": [
+    "last_gnt",
+    "gnt_done"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 25.0,
+  "success_coverage": 100.0
+}

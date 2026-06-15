@@ -1,0 +1,26 @@
+{
+  "id": "ARB_002",
+  "title": "Arbiter Grant Stickiness Violation",
+  "description": "Grant is revoked while a burst transaction is still active.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [PROT_VIOLATION] GNT dropped mid-transaction",
+  "expected_root_cause": "The arbiter does not check the 'busy' or 'active' signal of the current master before switching [4].",
+  "expected_fix_contains": "if (!bus_busy) gnt <= next_gnt;",
+  "rtl": "always_ff @(posedge clk) gnt <= req; // Direct passthrough",
+  "testbench": "task run(); m0.start_burst(); #5; m1.request(); endtask",
+  "failure_log": "T=50: M0 Active. M1 Req=1. GNT switched to M1. M0 data corrupted.",
+  "success_log": "GNT remains at M0 until burst_done is high.",
+  "fix_replacement": "always_ff @(posedge clk) if (!bus_active) gnt <= next_gnt;",
+  "forbidden_targets": [
+    "req"
+  ],
+  "valid_signals": [
+    "gnt",
+    "req",
+    "bus_active"
+  ]
+}

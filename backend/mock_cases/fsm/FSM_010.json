@@ -1,0 +1,25 @@
+{
+  "id": "FSM_010",
+  "title": "FSM Blocking Assignment Fault",
+  "description": "Sequential state updates use blocking assignments, creating race conditions in simulation.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "VCS-ERROR: Blocking assignment '=' used in sequential always block",
+  "expected_root_cause": "Code style violation: always_ff should only use non-blocking (<=) [5].",
+  "expected_fix_contains": "state <= next_state;",
+  "rtl": "always_ff @(posedge clk) begin state = next_state; end",
+  "testbench": "initial assert(state == next_state_prev);",
+  "failure_log": "Simulation/Synthesis mismatch. FSM behavior inconsistent with RTL code.",
+  "success_log": "Non-blocking assignments ensure predictable cycle-accurate behavior.",
+  "fix_replacement": "always_ff @(posedge clk) state <= next_state;",
+  "forbidden_targets": [
+    "next_state"
+  ],
+  "valid_signals": [
+    "state",
+    "clk"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "RR_ARB_037",
+  "title": "Priority Pointer Not Updated After Grant",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [FAIRNESS] Masters 1-3 each starved; last_gnt always resets to 0",
+  "rtl": "always_ff @(posedge clk)\n  if (gnt_done) last_gnt <= 2'h0;  // Always restart from M0 \u2014 unfair",
+  "testbench": "task check(); drive_all(); endtask",
+  "expected_root_cause": "After each grant the priority pointer is reset to 2'h0 rather than being updated to the ID of the master just served; subsequent arbitration always restarts from master 0, permanently preventing masters 1\u20133 from making forward progress.",
+  "expected_fix_contains": "last_gnt <= current_gnt_id",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)    last_gnt <= 2'h0;\n  else if (gnt_done) last_gnt <= current_gnt_id;  // Record who was just served",
+  "description": "After issuing a grant the pointer is reset to zero rather than to the ID of the master that was just served, so arbitration always restarts from master 0.",
+  "failure_log": "UVM_ERROR: [FAIRNESS] Masters 1-3 each starved; last_gnt always resets to 0",
+  "success_log": "Pointer updated to last winner. Round-robin sequence progresses correctly.",
+  "valid_signals": [
+    "last_gnt",
+    "gnt_done",
+    "current_gnt_id"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 10.0,
+  "success_coverage": 95.0
+}

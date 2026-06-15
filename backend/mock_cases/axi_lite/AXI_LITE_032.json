@@ -1,0 +1,27 @@
+{
+  "id": "AXI_LITE_032",
+  "title": "Address Decoder Overlap (Mismatched Mask)",
+  "description": "The decoder selection logic uses a mask that is too small, causing 0x1000 and 0x9000 to both trigger Slave 0.",
+  "bug_signature": "UVM_ERROR: [SBD_MISMATCH] Master intended S1 (0x9000), Data routed to S0 (0x1000)",
+  "expected_root_cause": "Bitwise AND mask for address decoding ignores the MSB of the comparison [21].",
+  "expected_fix_contains": "if (addr[15:12] == 4'h9)",
+  "failure_coverage": 50.0,
+  "success_coverage": 95.0,
+  "failure_log": "ADDR=0x9000 -> Decoded as 0x1000 (Mask 0x7FFF) -> S0 Selected.\nUVM_ERROR: Routing mismatch.",
+  "success_log": "ADDR=0x9000 -> S1 Selected correctly.",
+  "rtl": "assign s0_sel = (addr & 16'h7FFF) == 16'h1000;",
+  "fix_replacement": "assign s0_sel = addr == 16'h1000; assign s1_sel = addr == 16'h9000;",
+  "testbench": "task run(); `uvm_do_with(req, {addr == 16'h9000;}) endtask",
+  "forbidden_targets": [
+    "addr"
+  ],
+  "valid_signals": [
+    "addr",
+    "s0_sel",
+    "s1_sel"
+  ],
+  "metadata": {
+    "channel": "ADDR",
+    "bug_type": "Decoding"
+  }
+}

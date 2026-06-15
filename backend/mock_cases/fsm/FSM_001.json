@@ -1,0 +1,29 @@
+{
+  "id": "FSM_001",
+  "title": "FSM Missing Default \u2014 Latch Inferred on next_state",
+  "description": "The case statement covers IDLE and BUSY but assigns next_state only inside nested if conditions; when the conditions are false next_state is undriven, causing synthesis to infer a latch.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "VCS-WARNING: Latch inferred for 'next_state' in always_comb; start=0/done=0 paths leave next_state undriven",
+  "expected_root_cause": "The always_comb case statement has no default assignment for next_state before the case block, and the conditional assignments inside each branch leave next_state undriven when start=0 or done=0, causing synthesis to infer a latch.",
+  "expected_fix_contains": "next_state = state;  // Default: hold current state",
+  "rtl": "always_comb begin\n  case (state)\n    IDLE: if (start) next_state = BUSY;  // Undriven when start=0\n    BUSY: if (done)  next_state = IDLE;  // Undriven when done=0\n  endcase\nend",
+  "testbench": "initial begin start=1; #10; start=0; end",
+  "failure_log": "VCS-WARNING: Latch inferred for 'next_state' in always_comb; start=0/done=0 paths leave next_state undriven",
+  "success_log": "No latch warnings. next_state driven on all paths.",
+  "fix_replacement": "always_comb begin\n  next_state = state;  // Default: hold current state \u2014 no latch\n  case (state)\n    IDLE: if (start) next_state = BUSY;\n    BUSY: if (done)  next_state = IDLE;\n    default: next_state = IDLE;\n  endcase\nend",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "state",
+    "next_state",
+    "start",
+    "done"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

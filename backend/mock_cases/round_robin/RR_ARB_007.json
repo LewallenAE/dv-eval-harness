@@ -1,0 +1,26 @@
+{
+  "id": "RR_ARB_007",
+  "title": "Blocking Assignment in Priority Update",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 2,
+  "sticky_until": "rvalid",
+  "bug_signature": "VCS-WARNING: Blocking assignment to 'last_gnt' in always_ff; simulation/synthesis mismatch",
+  "rtl": "always_ff @(posedge clk)\n  last_gnt = current_gnt;  // Blocking '=' in sequential block",
+  "testbench": "initial forever #5 clk = ~clk;",
+  "expected_root_cause": "A blocking assignment (=) is used inside an always_ff block to update last_gnt, creating a race condition between the pointer update and any combinational logic that reads last_gnt in the same time step.",
+  "expected_fix_contains": "last_gnt <= current_gnt",
+  "fix_replacement": "always_ff @(posedge clk)\n  last_gnt <= current_gnt;  // Non-blocking \u2014 correct for sequential",
+  "description": "The priority pointer uses a blocking assignment inside always_ff, creating a race condition between the register update and any combinational logic that reads last_gnt in the same time step.",
+  "failure_log": "VCS-WARNING: Blocking assignment to 'last_gnt' in always_ff; simulation/synthesis mismatch",
+  "success_log": "No blocking assignment warnings. Synthesis and simulation agree.",
+  "valid_signals": [
+    "last_gnt",
+    "current_gnt"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 10.0,
+  "success_coverage": 100.0
+}

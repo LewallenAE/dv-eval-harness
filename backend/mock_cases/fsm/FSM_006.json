@@ -1,0 +1,26 @@
+{
+  "id": "FSM_006",
+  "title": "FSM Illegal Transition (Mealy)",
+  "description": "FSM transitions to DONE state based on input but fails to assert the 'valid' output.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [SVA_PROT] State=DONE but VALID=0",
+  "expected_root_cause": "Output logic and next-state logic are out of sync for Mealy-type transitions [3].",
+  "expected_fix_contains": "DONE: valid = 1'b1;",
+  "rtl": "always_comb begin if(done) next_state = DONE; end // Missing valid assignment",
+  "testbench": "initial begin #20; done=1; end",
+  "failure_log": "State=DONE. VALID=0. Scoreboard mismatch.",
+  "success_log": "VALID asserted concurrent with DONE state.",
+  "fix_replacement": "case(state) DONE: begin valid=1; next_state=IDLE; end endcase",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "state",
+    "valid",
+    "done"
+  ]
+}

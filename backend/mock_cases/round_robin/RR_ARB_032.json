@@ -1,0 +1,25 @@
+{
+  "id": "RR_ARB_032",
+  "title": "Weighted Priority Inversion \u2014 Weights Reversed",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [PRIO] Master 1 holds bus 1000x longer than Master 0; weights inverted",
+  "rtl": "logic [19:0] weights;\nassign weights = {10'd1000, 10'd1};  // M0=1, M1=1000 after bit-reversal in arb",
+  "testbench": "task check(); drive_both(); endtask",
+  "expected_root_cause": "The 20-bit weight register packs master 0 weight in the MSB field and master 1 weight in the LSB field, but the arbitration logic reads the fields in the opposite order, inverting the intended priority relationship between the two masters.",
+  "expected_fix_contains": "assign weights = {10'd1, 10'd1000}",
+  "fix_replacement": "logic [19:0] weights;\nassign weights = {10'd1, 10'd1000};  // M0=1000, M1=1 \u2014 correct field order",
+  "description": "The weight register is initialized with master 0 weight in the MSB and master 1 weight in the LSB; the arbitration logic reads them in reverse order, inverting intended priorities.",
+  "failure_log": "UVM_ERROR: [PRIO] Master 1 holds bus 1000x longer than Master 0; weights inverted",
+  "success_log": "Master 0 granted ~1000:1 ratio over Master 1 as specified by weights.",
+  "valid_signals": [
+    "weights"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 30.0,
+  "success_coverage": 95.0
+}

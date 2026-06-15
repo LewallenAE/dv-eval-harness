@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_017",
+  "title": "SVA Liveness Property Missing \u2014 Deadlock Undetected",
+  "description": "The testbench has only safety assertions (no illegal states), but lacks a liveness assertion that ARREADY must eventually be asserted after ARVALID, allowing a deadlock to go undetected.",
+  "bug_signature": "UVM_INFO: All safety assertions passed. Simulation completed. (ARREADY never asserted \u2014 missed by lack of liveness check)",
+  "expected_root_cause": "Verification gap: no `eventually` or bounded-liveness SVA to ensure ARREADY responds within N cycles of ARVALID [21, 22].",
+  "expected_fix_contains": "arvalid |-> ##[1:16] arready",
+  "failure_coverage": 0.0,
+  "success_coverage": 100.0,
+  "failure_log": "ARVALID=1 for 10000 cycles. ARREADY never seen. Test PASSED (no liveness check).\nUVM_ERROR (after adding assertion): Liveness violation.",
+  "success_log": "Assertion fires within 16 cycles of ARVALID asserting.",
+  "rtl": "No RTL change needed.",
+  "fix_replacement": "assert property (@(posedge clk) disable iff (!rst_n) arvalid |-> ##[1:16] arready);",
+  "testbench": "initial assert property (@(posedge clk) arvalid |-> ##[1:16] arready);",
+  "forbidden_targets": [
+    "arvalid"
+  ],
+  "valid_signals": [
+    "arvalid",
+    "arready"
+  ],
+  "metadata": {
+    "channel": "AR",
+    "bug_type": "SVA"
+  }
+}

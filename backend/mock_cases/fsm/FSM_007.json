@@ -1,0 +1,26 @@
+{
+  "id": "FSM_007",
+  "title": "FSM Parallel Logic Collision",
+  "description": "FSM attempts to transition to two different states in the same cycle due to overlapping conditions.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [SVA_MISC] FSM transition collision",
+  "expected_root_cause": "The transition logic uses multiple 'if' statements without 'else' or 'priority' directives [5].",
+  "expected_fix_contains": "priority if (abort) next_state = IDLE;",
+  "rtl": "if (go) next_state = BUSY; if (abort) next_state = IDLE;",
+  "testbench": "initial begin go=1; abort=1; #10; end",
+  "failure_log": "next_state is X (Multiple drivers in comb logic).",
+  "success_log": "Abort given priority over Go; FSM returns to IDLE.",
+  "fix_replacement": "if (abort) next_state = IDLE; else if (go) next_state = BUSY;",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "go",
+    "abort",
+    "next_state"
+  ]
+}

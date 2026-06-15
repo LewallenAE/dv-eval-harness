@@ -1,0 +1,21 @@
+{
+  "id": "FSM_AXI_LITE_002",
+  "title": "Blocking Assignment in Sequential State Update",
+  "family": "fsm_controller",
+  "machine_type": "mealy",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "ADDR",
+    "DATA",
+    "RESP"
+  ],
+  "has_default_case": true,
+  "bug_signature": "VCS-ERROR: Blocking assignment '=' used in sequential always block",
+  "rtl": "always_ff @(posedge clk) state = next_state;",
+  "testbench": "initial forever #5 clk = ~clk;",
+  "expected_root_cause": "The use of '=' instead of '<=' in a clocked process creates race conditions and violates synthesis golden rules [2, 5].",
+  "expected_fix_contains": "state <= next_state;",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n) if(!rst_n) state <= IDLE; else state <= next_state;",
+  "description": "Simulation/synthesis mismatch caused by incorrect assignment type in sequential block."
+}

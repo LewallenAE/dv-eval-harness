@@ -1,0 +1,25 @@
+{
+  "id": "ARB_003",
+  "title": "Arbiter Multiple Grant Fault",
+  "description": "Two masters are granted the bus in the same cycle.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_FATAL: [ARB_MISC] Multiple grants detected: GNT=2'b11",
+  "expected_root_cause": "Arbiter uses independent 'if' statements for each master instead of a priority chain [5].",
+  "expected_fix_contains": "unique if (req) gnt = 2'b01; else if (req[9]) gnt = 2'b10;",
+  "rtl": "if (req) gnt=1; if (req[9]) gnt[9]=1;",
+  "testbench": "task run(); req = 2'b11; #10; endtask",
+  "failure_log": "T=10: GNT=2'b11. Bus collision.",
+  "success_log": "GNT always one-hot.",
+  "fix_replacement": "always_comb begin gnt = 0; if(req) gnt=1; else if(req[9]) gnt[9]=1; end",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "req",
+    "gnt"
+  ]
+}

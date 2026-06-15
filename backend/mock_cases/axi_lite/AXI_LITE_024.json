@@ -1,0 +1,25 @@
+{
+  "id": "AXI_LITE_024",
+  "title": "Non-Blocking Assignment in Combinational Logic",
+  "description": "Crossbar Mux uses non-blocking assignments (<=) in an always_comb block, causing simulation delta-cycle delays.",
+  "bug_signature": "VCS-ERROR: Non-blocking assignment used in combinational block",
+  "expected_root_cause": "Logic error violating 'Synthesis Golden Rules' for combinational processes [3, 10].",
+  "expected_fix_contains": "out_data = in_data",
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0,
+  "failure_log": "Compiler Error: Non-synthesizable use of <= in always_comb.",
+  "success_log": "Mux logic is purely combinational.",
+  "rtl": "always_comb begin out_data <= in_data_s0; end",
+  "fix_replacement": "always_comb begin out_data = in_data_s0; end",
+  "testbench": "initial begin in_data_s0 = 32'hA; #1; assert(out_data == 32'hA); end",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "out_data"
+  ],
+  "metadata": {
+    "channel": "R",
+    "bug_type": "Syntax"
+  }
+}

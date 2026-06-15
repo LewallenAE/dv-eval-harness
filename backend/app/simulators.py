@@ -45,6 +45,7 @@ class MockSimulatorAdapter:
 
 
 def get_simulator_adapter(name: str = "mock") -> SimulatorAdapter:
+    """Return the named simulator adapter; raises ValueError for unsupported names."""
     normalized_name = name.lower().strip()
 
     if normalized_name == "mock":

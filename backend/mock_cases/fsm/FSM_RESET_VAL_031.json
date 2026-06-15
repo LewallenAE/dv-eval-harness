@@ -1,0 +1,31 @@
+{
+  "id": "FSM_RESET_VAL_031",
+  "title": "FSM Resets to IDLE Instead of Required BOOT State",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "BOOT",
+    "IDLE"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [INIT] state=IDLE on reset release; expected BOOT; self-test sequence skipped",
+  "rtl": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) state <= IDLE;  // Wrong: skips BOOT self-test\n  else        state <= next_state;",
+  "testbench": "initial rst_n = 0; #10 rst_n = 1;",
+  "expected_root_cause": "The reset branch assigns state to IDLE rather than the architecturally required BOOT state; the power-on self-test that runs through BOOT is never executed, leaving hardware self-checks permanently bypassed.",
+  "expected_fix_contains": "if (!rst_n) state <= BOOT",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) state <= BOOT;  // Correct: begin in BOOT for self-test\n  else        state <= next_state;",
+  "description": "The design specification requires the FSM to enter a BOOT state on reset to run self-test before accepting commands; the implementation resets to IDLE instead, skipping the BOOT self-test entirely.",
+  "failure_log": "UVM_ERROR: [INIT] state=IDLE on reset release; expected BOOT; self-test sequence skipped",
+  "success_log": "state=BOOT after reset. Self-test sequence completes before FSM enters IDLE.",
+  "valid_signals": [
+    "state",
+    "next_state",
+    "rst_n"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 10.0,
+  "success_coverage": 100.0
+}

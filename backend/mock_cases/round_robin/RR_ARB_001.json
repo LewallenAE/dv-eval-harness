@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_001",
+  "title": "Priority Pointer Reset on Idle",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 16,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [FAIRNESS] last_gnt reset to 0 on idle; Master 3 starved after re-arbitration",
+  "rtl": "always_ff @(posedge clk)\n  if (!any_req) last_gnt <= 2'h0;  // Bug: wipes pointer on idle",
+  "testbench": "task check_fairness(); // Drive M3, then IDLE, then M3 again endtask",
+  "expected_root_cause": "The priority pointer (last_gnt) resets to zero whenever all requests go idle instead of preserving the last winner, causing the arbiter to always restart from master 0 after any idle period.",
+  "expected_fix_contains": "if (|gnt) last_gnt <= gnt_id",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)    last_gnt <= 2'h0;\n  else if (|gnt) last_gnt <= gnt_id;  // Preserve pointer; only update on grant",
+  "description": "The priority pointer resets to zero when all requests go idle, breaking fairness \u2014 the master that was last served should keep its position so the next grant goes to the following master.",
+  "failure_log": "UVM_ERROR: [FAIRNESS] last_gnt reset to 0 on idle; Master 3 starved after re-arbitration",
+  "success_log": "Priority pointer preserved across idle cycles. Fairness window met for all 4 masters.",
+  "valid_signals": [
+    "last_gnt",
+    "gnt",
+    "any_req",
+    "gnt_id"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 30.0,
+  "success_coverage": 95.0
+}

@@ -1,0 +1,26 @@
+{
+  "id": "RR_ARB_024",
+  "title": "case-inside Wildcard Overlap Causes Non-Unique Selection",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "VCS-ERROR: case-inside overlap for req=4'b1100; non-deterministic grant selection",
+  "rtl": "always_comb\n  case (req) inside\n    4'b1???: gnt = 4'h8;  // Matches 4'b1100\n    4'b?1??: gnt = 4'h4;  // Also matches 4'b1100 \u2014 overlap!\n  endcase",
+  "testbench": "initial req = 4'b1111;",
+  "expected_root_cause": "Two case-inside branches use overlapping wildcard patterns; when req=4'b1100 both branches match simultaneously, producing non-deterministic grant selection that varies between simulation runs and synthesis implementations.",
+  "expected_fix_contains": "unique case (req) inside",
+  "fix_replacement": "always_comb\n  unique case (req) inside\n    4'b1000: gnt = 4'h8;\n    4'b0100: gnt = 4'h4;\n    4'b0010: gnt = 4'h2;\n    4'b0001: gnt = 4'h1;\n    default: gnt = 4'h0;\n  endcase",
+  "description": "Two case-inside branches with overlapping wildcards both match when req=4'b1100, causing non-deterministic grant selection in synthesis.",
+  "failure_log": "VCS-ERROR: case-inside overlap for req=4'b1100; non-deterministic grant selection",
+  "success_log": "unique case: exactly one branch fires for all req values. No overlap.",
+  "valid_signals": [
+    "req",
+    "gnt"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0
+}

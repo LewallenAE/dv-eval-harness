@@ -1,0 +1,26 @@
+{
+  "id": "FIFO_009",
+  "title": "FIFO False Empty Assertion",
+  "description": "Empty flag asserts for one cycle during a simultaneous push/pop to an empty FIFO.",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 8,
+  "depth": 16,
+  "pointer_width": 5,
+  "bug_signature": "UVM_ERROR: [SVA_EMPTY] Empty high while data available",
+  "expected_root_cause": "Empty flag is purely combinational based on equal pointers but doesn't account for bypassing [1, 21].",
+  "expected_fix_contains": "assign empty = (wr_ptr == rd_ptr) && !bypass_data;",
+  "rtl": "assign empty = (wr_ptr == rd_ptr);",
+  "testbench": "task run(); fork push(1); pop(); join endtask",
+  "failure_log": "T=20: Data 1 pushed and popped. Empty stayed high during transfer.",
+  "success_log": "Empty flag appropriately cleared during flow-through.",
+  "fix_replacement": "assign empty = (wr_ptr == rd_ptr) && !(wr_en && !full);",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "empty",
+    "wr_ptr",
+    "rd_ptr"
+  ]
+}

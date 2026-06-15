@@ -1,0 +1,16 @@
+{
+  "id": "ARB_RR_WEIGHT_036",
+  "title": "Round-Robin Unfair Weighted Grant",
+  "family": "round_robin",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [BW_CHECK] M0 received 90% bandwidth, Expected 50%",
+  "rtl": "always_comb next_mask = {last_gnt, 1'b1};",
+  "testbench": "task run(); fork m0.high(); m1.high(); join endtask",
+  "expected_root_cause": "The priority mask generation is biased toward Master 0, failing to achieve true fairness [38, 39].",
+  "expected_fix_contains": "mask <= (1 << current_gnt) - 1;",
+  "fix_replacement": "always_ff @(posedge clk) if(any_gnt) priority_ptr <= (priority_ptr + 1) % NUM_MASTERS;",
+  "description": "Arbiter fairness bug where the priority rotation is not symmetric."
+}

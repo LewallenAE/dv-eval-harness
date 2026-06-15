@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_046",
+  "title": "Asynchronous Request Sampled Without Synchronizer",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [META] gnt=4'bxxxx; req sampled at clock edge without synchronizer",
+  "rtl": "assign gnt = req & mask;  // req is asynchronous \u2014 metastability risk at clock edge",
+  "testbench": "initial #10.7 req = 1;",
+  "expected_root_cause": "The request signal req arrives from an asynchronous clock domain and is used directly in combinational grant logic without a synchronizer; when req transitions near posedge clk the sampled value is metastable and gnt becomes unknown.",
+  "expected_fix_contains": "req_q1 <= req; req_sync <= req_q1",
+  "fix_replacement": "// Synchronize req into clk domain before arbitration\nalways_ff @(posedge clk or negedge rst_n) begin\n  if (!rst_n) begin req_q1 <= 4'h0; req_sync <= 4'h0; end\n  else        begin req_q1 <= req; req_sync <= req_q1; end\nend\nassign gnt = req_sync & mask;",
+  "description": "The request signal from an asynchronous source is used directly in combinational grant logic without a synchronizer, causing metastability when req transitions near the clock edge.",
+  "failure_log": "UVM_ERROR: [META] gnt=4'bxxxx; req sampled at clock edge without synchronizer",
+  "success_log": "req_sync stable. gnt clean after 2-cycle synchronizer latency.",
+  "valid_signals": [
+    "req",
+    "req_q1",
+    "req_sync",
+    "gnt"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_013",
+  "title": "Outstanding Transaction Counter Overflow",
+  "description": "The crossbar allows more than the maximum outstanding transactions (N=4) because the counter uses a 2-bit register that wraps from 3 to 0 silently.",
+  "bug_signature": "UVM_ERROR: [OVERFLOW] Outstanding count exceeded max=4; accepting 5th transaction",
+  "expected_root_cause": "The 2-bit counter (max value 3) wraps around to 0 when 4 transactions are outstanding, making it appear empty rather than full [17].",
+  "expected_fix_contains": "if (count < MAX_OUTSTANDING)",
+  "failure_coverage": 25.0,
+  "success_coverage": 100.0,
+  "failure_log": "COUNT=3 (binary 11). Increment: COUNT=0 (wrap). AWREADY=1 (incorrectly).\nUVM_ERROR: 5th transaction accepted.",
+  "success_log": "AWREADY=0 when count reaches MAX_OUTSTANDING=4.",
+  "rtl": "reg [1:0] count; // max 3, but need 4",
+  "fix_replacement": "reg [2:0] count; // 0-7, compare against MAX_OUTSTANDING=4",
+  "testbench": "task run(); repeat(5) drive_write(); endtask",
+  "forbidden_targets": [
+    "awvalid"
+  ],
+  "valid_signals": [
+    "count",
+    "awready"
+  ],
+  "metadata": {
+    "channel": "AW",
+    "bug_type": "Functional"
+  }
+}

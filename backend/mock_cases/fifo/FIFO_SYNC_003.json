@@ -1,0 +1,16 @@
+{
+  "id": "FIFO_SYNC_003",
+  "title": "FIFO Full Flag MSB Comparison Failure",
+  "family": "fifo_buffer",
+  "machine_type": "n/a",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SBD_DATA] Data mismatch at index 0 (Overwritten)",
+  "rtl": "assign full = (wr_ptr[3:0] == rd_ptr[3:0]);",
+  "testbench": "task run(); repeat(17) push(data); endtask",
+  "expected_root_cause": "The full logic ignores the MSB of the pointer, failing to distinguish between 'empty' and 'full' when pointers wrap [6].",
+  "expected_fix_contains": "assign full = (wr_ptr[ADDR_W] != rd_ptr[ADDR_W]) && (wr_ptr[3:0] == rd_ptr[3:0])",
+  "fix_replacement": "assign full = (wr_ptr != rd_ptr) && (wr_ptr[3:0] == rd_ptr[3:0]);",
+  "description": "FIFO overflow caused by incomplete pointer comparison logic."
+}

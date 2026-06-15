@@ -1,0 +1,16 @@
+{
+  "id": "FIFO_RESET_012",
+  "title": "FIFO Non-Zero Pointer After Reset",
+  "family": "fifo_buffer",
+  "machine_type": "n/a",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SBD_EMPTY] Empty flag low after reset deassertion",
+  "rtl": "always_ff @(posedge clk) if (!rst_n) wr_ptr <= 0; // Missing rd_ptr",
+  "testbench": "initial begin rst_n=0; #20 rst_n=1; end",
+  "expected_root_cause": "The reset branch fails to initialize the read pointer, leaving it in an unknown state on startup [6, 19].",
+  "expected_fix_contains": "if (!rst_n) begin wr_ptr <= 0; rd_ptr <= 0; end",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n) if (!rst_n) {wr_ptr, rd_ptr} <= '0;",
+  "description": "Initialization bug causing false full/empty status on startup."
+}

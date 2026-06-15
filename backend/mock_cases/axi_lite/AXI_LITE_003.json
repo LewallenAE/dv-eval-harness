@@ -1,0 +1,27 @@
+{
+  "id": "AXI_LITE_003",
+  "title": "Read Data Channel RDATA X-State Propagation",
+  "description": "The crossbar drives RDATA from an uninitialized register on the first read after reset, propagating X values to the master.",
+  "bug_signature": "UVM_ERROR: [SVA_XZ] RDATA contains unknown bits while RVALID is high",
+  "expected_root_cause": "The read data register is not initialized in the reset branch of its always_ff block, leaving it in state X on first access [3].",
+  "expected_fix_contains": "if (!rst_n) rdata <= 32'h0",
+  "failure_coverage": 10.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=30: rst_n=1. T=40: RVALID=1, RDATA=32'hXXXXXXXX.\nUVM_ERROR: X-propagation on read path.",
+  "success_log": "RDATA is 32'h0 after reset; valid data on subsequent reads.",
+  "rtl": "always_ff @(posedge clk) rdata <= mem[addr];",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n) if (!rst_n) rdata <= 32'h0; else rdata <= mem[addr];",
+  "testbench": "initial begin rst_n=0; #20; rst_n=1; drive_read(); end",
+  "forbidden_targets": [
+    "rvalid"
+  ],
+  "valid_signals": [
+    "rdata",
+    "rvalid",
+    "rst_n"
+  ],
+  "metadata": {
+    "channel": "R",
+    "bug_type": "Reset"
+  }
+}

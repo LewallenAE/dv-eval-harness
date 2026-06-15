@@ -1,0 +1,26 @@
+{
+  "id": "FSM_003",
+  "title": "Combinational Loop in FSM Output",
+  "description": "FSM output signal is used to determine the next state in the same combinational block.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "VCS-ERROR: Combinational loop detected",
+  "expected_root_cause": "State machine logic creates a cyclic dependency between output logic and transition logic [12].",
+  "expected_fix_contains": "always_ff @(posedge clk) fsm_out_q <= fsm_out_next;",
+  "rtl": "assign ready = (state == IDLE) && !ack; always_comb if(ready) next_state = BUSY;",
+  "testbench": "initial begin #10; ack=1; end",
+  "failure_log": "Simulator terminated due to infinite delta cycles.",
+  "success_log": "Output signal registered to break combinational path.",
+  "fix_replacement": "always_ff @(posedge clk) ready_q <= (state == IDLE);",
+  "forbidden_targets": [
+    "rst_n"
+  ],
+  "valid_signals": [
+    "ready",
+    "state",
+    "next_state"
+  ]
+}

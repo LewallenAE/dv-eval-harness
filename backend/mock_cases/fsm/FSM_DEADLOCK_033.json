@@ -1,0 +1,33 @@
+{
+  "id": "FSM_DEADLOCK_033",
+  "title": "FSM Deadlock in WAIT State \u2014 No Timeout Escape",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "WAIT"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_FATAL: [DEADLOCK] FSM stuck in WAIT for 10000 cycles; ack never asserted",
+  "rtl": "always_comb begin\n  next_state = state;\n  case (state)\n    WAIT: if (ack) next_state = IDLE;  // Stuck forever if ack never asserts\n  endcase\nend",
+  "testbench": "task run(); drive_req(); // ack never arrives endtask",
+  "expected_root_cause": "The WAIT state transition depends exclusively on the external ack signal with no watchdog timer; if the upstream ack source stalls or disconnects the FSM never exits WAIT, hanging the entire pipeline indefinitely.",
+  "expected_fix_contains": "if (ack || timeout) next_state = IDLE",
+  "fix_replacement": "logic [7:0] timer;\nalways_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)             timer <= 8'h0;\n  else if (state == WAIT) timer <= timer + 1;\n  else                    timer <= 8'h0;\nassign timeout = (timer > 8'd200);\nalways_comb begin\n  next_state = state;\n  case (state)\n    WAIT: if (ack || timeout) next_state = IDLE;\n  endcase\nend",
+  "description": "The FSM waits for an external ack signal to leave the WAIT state; if the downstream block stalls permanently and ack never arrives the FSM hangs forever with no watchdog timeout.",
+  "failure_log": "UVM_FATAL: [DEADLOCK] FSM stuck in WAIT for 10000 cycles; ack never asserted",
+  "success_log": "Timeout fires after 201 cycles. FSM escapes WAIT and returns to IDLE.",
+  "valid_signals": [
+    "state",
+    "next_state",
+    "ack",
+    "timeout",
+    "timer"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

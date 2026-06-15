@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_048",
+  "title": "Illegal FSM State Transition",
+  "description": "The Write FSM jumps from WDATA_PHASE directly to IDLE without generating a Write Response (BVALID).",
+  "bug_signature": "UVM_ERROR: [AXI_PROT_CHECK] B-channel skipped for transaction at 0x2000",
+  "expected_root_cause": "FSM transition logic uses a faulty 'if' condition that clears the state before the B-phase is triggered [40, 41].",
+  "expected_fix_contains": "WDATA_PHASE: next_state = B_PHASE",
+  "failure_coverage": 50.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=100: State=WDATA. T=110: State=IDLE. BVALID never asserted.\nUVM_ERROR: Protocol gap.",
+  "success_log": "State=WDATA -> State=BRESP -> State=IDLE.",
+  "rtl": "WDATA_PHASE: next_state = IDLE;",
+  "fix_replacement": "WDATA_PHASE: next_state = BRESP_PHASE;",
+  "testbench": "task run(); drive_write(); #50; assert(bvalid == 1); endtask",
+  "forbidden_targets": [
+    "awvalid"
+  ],
+  "valid_signals": [
+    "state",
+    "bvalid"
+  ],
+  "metadata": {
+    "channel": "GEN",
+    "bug_type": "Functional"
+  }
+}

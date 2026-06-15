@@ -1,0 +1,16 @@
+{
+  "id": "FIFO_DEPTH_ERR_046",
+  "title": "FIFO Memory Buffer Index Overflow",
+  "family": "fifo_buffer",
+  "machine_type": "n/a",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "VCS-ERROR: Array index 16 is out of bounds [0:15]",
+  "rtl": "logic [31:0] mem [41]; mem[wr_ptr] <= data; // wr_ptr is 5-bit",
+  "testbench": "task run(); repeat(17) push(); endtask",
+  "expected_root_cause": "The write pointer MSB (used for full flag) is used to index a memory that is sized only for the lower bits [6, 31].",
+  "expected_fix_contains": "mem[wr_ptr[ADDR_W-1:0]]",
+  "fix_replacement": "always_ff @(posedge clk) if(wr_en) mem[wr_ptr[3:0]] <= data;",
+  "description": "Memory corruption bug where the status bit of a pointer is used as a physical address."
+}

@@ -1,0 +1,29 @@
+{
+  "id": "RR_ARB_019",
+  "title": "Round-Robin Grant Crosses Clock Domain Without Synchronizer",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [META] b_gnt=1'bx after a_gnt transition; single-flop CDC metastability",
+  "rtl": "always_ff @(posedge clk_b)\n  b_gnt <= a_gnt;  // Single-flop CDC \u2014 metastability risk",
+  "testbench": "initial fork clk_a; clk_b; join",
+  "expected_root_cause": "The grant signal from clock domain A is captured in clock domain B with only a single flip-flop; there is no second synchronizer stage, leaving the design susceptible to metastability when a_gnt transitions near posedge clk_b.",
+  "expected_fix_contains": "q1 <= a_gnt; b_gnt <= q1",
+  "fix_replacement": "// Two-stage synchronizer for a_gnt into clk_b domain\nalways_ff @(posedge clk_b or negedge rst_b_n) begin\n  if (!rst_b_n) begin q1 <= 1'b0; b_gnt <= 1'b0; end\n  else          begin q1 <= a_gnt; b_gnt <= q1;  end\nend",
+  "description": "The grant signal from clock domain A is sampled directly in clock domain B without a 2-flop synchronizer, risking metastability.",
+  "failure_log": "UVM_ERROR: [META] b_gnt=1'bx after a_gnt transition; single-flop CDC metastability",
+  "success_log": "b_gnt stable after 2-flop synchronizer. No X-propagation detected.",
+  "valid_signals": [
+    "a_gnt",
+    "b_gnt",
+    "q1",
+    "clk_b"
+  ],
+  "forbidden_targets": [
+    "clk_b",
+    "clk_a"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

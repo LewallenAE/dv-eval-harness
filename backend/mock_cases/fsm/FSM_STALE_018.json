@@ -1,0 +1,32 @@
+{
+  "id": "FSM_STALE_018",
+  "title": "Stale Input \u2014 State Transition Inside always_ff Loses Mealy Pulse",
+  "family": "fsm_controller",
+  "machine_type": "mealy",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "PROCESS"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [TIMING] input_ready pulse on same edge as state change; transition missed in 2/100 runs",
+  "rtl": "always_ff @(posedge clk)\n  if (input_ready) state <= PROCESS;  // Misses pulses that arrive on transition edge",
+  "testbench": "initial begin #10 input_ready = 1; end",
+  "expected_root_cause": "Placing the conditional state assignment directly inside always_ff couples input sampling to the clock edge; a one-cycle input_ready pulse that coincides with another state change can be masked by the if-else ordering, causing non-deterministic transition behavior.",
+  "expected_fix_contains": "if (input_ready && state == IDLE) next_state = PROCESS",
+  "fix_replacement": "always_comb begin\n  next_state = state;\n  if (input_ready && state == IDLE) next_state = PROCESS;\n  else if (state == PROCESS && done) next_state = IDLE;\nend\nalways_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) state <= IDLE;\n  else        state <= next_state;",
+  "description": "The state transition and input sampling are fused in the same always_ff block; a one-cycle pulse on input_ready that arrives on the same edge as a state transition is either missed or double-counted depending on simulator scheduling.",
+  "failure_log": "UVM_ERROR: [TIMING] input_ready pulse on same edge as state change; transition missed in 2/100 runs",
+  "success_log": "Combinational next-state logic. All input_ready pulses captured regardless of concurrent state changes.",
+  "valid_signals": [
+    "state",
+    "next_state",
+    "input_ready",
+    "done"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0
+}

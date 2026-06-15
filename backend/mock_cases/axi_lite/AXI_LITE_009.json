@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_009",
+  "title": "RVALID Asserted Without Corresponding Read Request",
+  "description": "The crossbar spontaneously asserts RVALID with stale RDATA from a previous transaction when no ARVALID has been seen.",
+  "bug_signature": "UVM_ERROR: [AXI_PROT_CHECK] RVALID high with no pending ARVALID transaction",
+  "expected_root_cause": "The read pipeline state machine transitions to the RVALID state on a combinational signal that glitches without a valid AR-channel handshake [11].",
+  "expected_fix_contains": "if (ar_handshake_done) rvalid <= 1",
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=50: ARVALID=0, RVALID=1, RDATA=0xDEAD. No request pending.\nUVM_ERROR: Spurious read response.",
+  "success_log": "RVALID asserted only after AR-channel handshake registers an outstanding read.",
+  "rtl": "assign rvalid = (state == RDATA_PHASE);",
+  "fix_replacement": "always_ff @(posedge clk) if (!rst_n) rvalid <= 0; else if (ar_done) rvalid <= 1; else if (rvalid && rready) rvalid <= 0;",
+  "testbench": "initial begin @(posedge clk); assert(rvalid == 0); end",
+  "forbidden_targets": [
+    "rdata"
+  ],
+  "valid_signals": [
+    "rvalid",
+    "arvalid"
+  ],
+  "metadata": {
+    "channel": "R",
+    "bug_type": "Handshake"
+  }
+}

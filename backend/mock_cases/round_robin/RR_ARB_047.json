@@ -1,0 +1,26 @@
+{
+  "id": "RR_ARB_047",
+  "title": "Round-Robin Pointer Decrements Instead of Increments",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 4,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [FAIRNESS] Grant order is 3\u21922\u21921\u21920; expected 0\u21921\u21922\u21923",
+  "rtl": "always_ff @(posedge clk)\n  if (gnt_done) last_gnt <= last_gnt - 1;  // Rotates backwards",
+  "testbench": "task check(); drive_all(); endtask",
+  "expected_root_cause": "The priority pointer decrements after each grant (last_gnt - 1) instead of incrementing, causing the arbiter to rotate backwards (3\u21922\u21921\u21920) rather than the required forward order (0\u21921\u21922\u21923).",
+  "expected_fix_contains": "last_gnt <= (last_gnt + 1) % 4",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)    last_gnt <= 2'h0;\n  else if (gnt_done) last_gnt <= (last_gnt + 1) % 4;",
+  "description": "The priority pointer decrements after each grant, causing arbitration to rotate in reverse order (3\u21922\u21921\u21920) instead of forward (0\u21921\u21922\u21923).",
+  "failure_log": "UVM_ERROR: [FAIRNESS] Grant order is 3\u21922\u21921\u21920; expected 0\u21921\u21922\u21923",
+  "success_log": "Grant order verified as 0\u21921\u21922\u21923\u21920. Forward round-robin confirmed.",
+  "valid_signals": [
+    "last_gnt",
+    "gnt_done"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0
+}

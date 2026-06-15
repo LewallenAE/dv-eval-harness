@@ -1,0 +1,26 @@
+{
+  "id": "FIFO_007",
+  "title": "FIFO Underflow Error",
+  "description": "Read pointer wraps to maximum value when empty, causing false 'Full' assertion.",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 8,
+  "depth": 4,
+  "pointer_width": 3,
+  "bug_signature": "UVM_FATAL: [SVA_EMPTY] Full asserted after reset and one read",
+  "expected_root_cause": "Read pointer logic lacks underflow protection [1].",
+  "expected_fix_contains": "if (rd_en && !empty)",
+  "rtl": "always_ff @(posedge clk) if (rd_en) rd_ptr <= rd_ptr - 1;",
+  "testbench": "task run(); rd_en=1; #10; endtask",
+  "failure_log": "rd_ptr went from 0 to 7. Full asserted erroneously.",
+  "success_log": "rd_ptr stays 0 when Empty is high.",
+  "fix_replacement": "if (rd_en && !empty) rd_ptr <= rd_ptr + 1;",
+  "forbidden_targets": [
+    "wr_ptr"
+  ],
+  "valid_signals": [
+    "empty",
+    "rd_ptr",
+    "full"
+  ]
+}

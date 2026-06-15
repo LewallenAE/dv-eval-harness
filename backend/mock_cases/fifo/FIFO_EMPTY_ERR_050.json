@@ -1,0 +1,16 @@
+{
+  "id": "FIFO_EMPTY_ERR_050",
+  "title": "FIFO False Empty Assertion (MSB mismatch)",
+  "family": "fifo_buffer",
+  "machine_type": "n/a",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_FATAL: [SVA_ERR] Read from Empty FIFO at T=100",
+  "rtl": "assign empty = (wr_ptr[ADDR_W] != rd_ptr[ADDR_W]) && (wr_ptr[3:0] == rd_ptr[3:0]);",
+  "testbench": "task run(); push(); pop(); endtask",
+  "expected_root_cause": "The empty logic is accidentally using the 'Full' logic formula, asserting only when the buffer is full [6, 32].",
+  "expected_fix_contains": "assign empty = (wr_ptr == rd_ptr)",
+  "fix_replacement": "assign empty = (wr_ptr == rd_ptr);",
+  "description": "Safety violation where the FIFO allows reads only when full and blocks when empty."
+}

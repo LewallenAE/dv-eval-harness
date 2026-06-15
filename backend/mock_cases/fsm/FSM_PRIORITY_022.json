@@ -1,0 +1,20 @@
+{
+  "id": "FSM_PRIORITY_022",
+  "title": "Priority Inversion in FSM Transition",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "ERROR",
+    "ACTIVE"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [FSM_PROT] FSM moved to ACTIVE during ERROR condition",
+  "rtl": "if (start) next = ACTIVE; if (err) next = ERROR;",
+  "testbench": "initial begin start = 1; err = 1; end",
+  "expected_root_cause": "FSM transition logic uses independent 'if' blocks, allowing the last one (err) or first one (start) to win inconsistently [20].",
+  "expected_fix_contains": "priority if (err)",
+  "fix_replacement": "if (err) next = ERROR; else if (start) next = ACTIVE;",
+  "description": "Functional bug where high-priority error states are masked by lower-priority start signals."
+}

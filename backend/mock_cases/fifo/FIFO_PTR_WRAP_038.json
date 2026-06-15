@@ -1,0 +1,16 @@
+{
+  "id": "FIFO_PTR_WRAP_038",
+  "title": "FIFO Counter Underflow on Reset",
+  "family": "fifo_buffer",
+  "machine_type": "n/a",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SVA_ERR] FIFO count is 4'hF (Underflow)",
+  "rtl": "always_ff @(posedge clk) if(rd_en) count <= count - 1;",
+  "testbench": "task run(); rd_en = 1; endtask",
+  "expected_root_cause": "Count register decrements on reset or when empty, wrapping to max value [6, 29].",
+  "expected_fix_contains": "if (rd_en && !empty)",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n) if(!rst_n) count <= 0; else if(rd_en && !empty) count <= count - 1;",
+  "description": "Functional bug where the occupancy counter becomes corrupted due to unguarded reads."
+}

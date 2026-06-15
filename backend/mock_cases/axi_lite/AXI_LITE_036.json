@@ -1,0 +1,25 @@
+{
+  "id": "AXI_LITE_036",
+  "title": "Early Response Objection Drop",
+  "description": "UVM Test terminates before the Write Response (B) is received, missing potential errors.",
+  "bug_signature": "UVM_INFO: Test done at 500ns (BVALID still outstanding)",
+  "expected_root_cause": "UVM Objection is dropped in the sequence body before the B-channel response is finalized [25, 26].",
+  "expected_fix_contains": "get_response(rsp)",
+  "failure_coverage": 30.0,
+  "success_coverage": 100.0,
+  "failure_log": "Sequence finished at 500ns.\nBVALID arrives at 510ns (Ignored).\nUVM_ERROR: Transaction finished without acknowledgment.",
+  "success_log": "Objection held until BVALID/BREADY handshake completes.",
+  "rtl": "No RTL change needed.",
+  "fix_replacement": "task body(); `uvm_do(req); get_response(rsp); endtask",
+  "testbench": "task run(); obj.raise_objection(this); seq.start(); obj.drop_objection(this); endtask",
+  "forbidden_targets": [
+    "awvalid"
+  ],
+  "valid_signals": [
+    "bvalid"
+  ],
+  "metadata": {
+    "channel": "B",
+    "bug_type": "Sequence"
+  }
+}

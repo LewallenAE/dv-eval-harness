@@ -1,0 +1,16 @@
+{
+  "id": "ARB_COLLISION_015",
+  "title": "Bus Contention in Simultaneous Grant",
+  "family": "round_robin",
+  "machine_type": "mealy",
+  "encoding": "one_hot",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_FATAL: [BUS_COLL] Multiple drivers on signal 'bus_addr'",
+  "rtl": "assign gnt0 = req0; assign gnt1 = req1;",
+  "testbench": "initial begin req0 = 1; req1 = 1; end",
+  "expected_root_cause": "Arbiter uses concurrent assignment statements for grants instead of a prioritized selector [8, 20].",
+  "expected_fix_contains": "assert property ($onehot0(gnt))",
+  "fix_replacement": "always_comb begin gnt = 0; if(req0) gnt=1; else if(req1) gnt[7]=1; end",
+  "description": "Arbiter failure where multiple masters are granted the bus in the same cycle."
+}

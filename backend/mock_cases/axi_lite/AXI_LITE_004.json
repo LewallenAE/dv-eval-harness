@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_004",
+  "title": "Write Strobe Zero Causes Silent No-Op",
+  "description": "When WSTRB=4'b0000, the crossbar executes a write to the slave without any byte enables, writing nothing but generating a successful BRESP, masking a missing strobe error.",
+  "bug_signature": "UVM_ERROR: [SBD_DATA] WSTRB=0 accepted; no data written but BVALID asserted",
+  "expected_root_cause": "The WSTRB validity check is absent; the protocol requires at least one strobe bit to be set for a valid write transfer [1, 4].",
+  "expected_fix_contains": "if (|wstrb) do_write <= 1",
+  "failure_coverage": 50.0,
+  "success_coverage": 100.0,
+  "failure_log": "WSTRB=4'b0000, WVALID=1. BRESP=OKAY. RAM unchanged.\nUVM_ERROR: Illegal no-op write accepted.",
+  "success_log": "WSTRB=0 generates SLVERR or is rejected before write occurs.",
+  "rtl": "always_ff @(posedge clk) if (wvalid && wready) mem[addr] <= wdata;",
+  "fix_replacement": "always_ff @(posedge clk) if (wvalid && wready && |wstrb) begin foreach(wstrb[i]) if (wstrb[i]) mem[addr][i*8+:8] <= wdata[i*8+:8]; end",
+  "testbench": "task run(); `uvm_do_with(req, {wstrb == 4'b0000;}) endtask",
+  "forbidden_targets": [
+    "wdata"
+  ],
+  "valid_signals": [
+    "wstrb",
+    "wvalid"
+  ],
+  "metadata": {
+    "channel": "W",
+    "bug_type": "Functional"
+  }
+}

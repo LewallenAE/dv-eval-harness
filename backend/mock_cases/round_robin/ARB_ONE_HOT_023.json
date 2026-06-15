@@ -1,0 +1,28 @@
+{
+  "id": "ARB_ONE_HOT_023",
+  "title": "Non-One-Hot Grant \u2014 Static All-Ones Mask Passes Multi-Hot req",
+  "family": "round_robin",
+  "machine_type": "mealy",
+  "encoding": "one_hot",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [MULTI_GNT] gnt=2'b11 for req=2'b11; non-one-hot grant asserted",
+  "rtl": "assign gnt = req & mask;  // mask=2'b11 always: gnt copies multi-hot req",
+  "testbench": "initial begin req = 2'b11; mask = 2'b11; end",
+  "expected_root_cause": "The mask signal is permanently set to 2'b11, so the AND operation (req & mask) is equivalent to req with no filtering; when both request bits are set the output is 2'b11, violating the one-hot grant requirement.",
+  "expected_fix_contains": "if      (req[0]) gnt = 2'b01",
+  "fix_replacement": "always_comb begin\n  gnt = 2'b00;\n  if      (req[0]) gnt = 2'b01;  // Priority encoder: one-hot output\n  else if (req[1]) gnt = 2'b10;\nend",
+  "description": "The priority mask is hardcoded to 2'b11 (all-ones); AND-ing req with an all-ones mask returns req unchanged, so when both masters request simultaneously gnt becomes 2'b11 violating the one-hot requirement.",
+  "failure_log": "UVM_ERROR: [MULTI_GNT] gnt=2'b11 for req=2'b11; non-one-hot grant asserted",
+  "success_log": "gnt always one-hot. req=2'b11 produces gnt=2'b01 (master 0 priority).",
+  "valid_signals": [
+    "gnt",
+    "req",
+    "mask"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0
+}

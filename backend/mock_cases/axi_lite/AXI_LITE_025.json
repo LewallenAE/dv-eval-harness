@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_025",
+  "title": "Read Response (RRESP) Encoding Corruption",
+  "description": "The crossbar incorrectly returns 2'b10 (SLVERR) for an address that is correctly mapped and accessible.",
+  "bug_signature": "UVM_ERROR: [SBD_MISMATCH] Expected RRESP OKAY (0x0), Got SLVERR (0x2)",
+  "expected_root_cause": "The Read FSM state logic for response selection is tied to an internal error bit that is incorrectly high.",
+  "expected_fix_contains": "assign rresp = (addr_invalid) ? 2'b11 : 2'b00",
+  "failure_coverage": 75.0,
+  "success_coverage": 100.0,
+  "failure_log": "Valid Read to Slave 0: RRESP=0x2\nUVM_ERROR: Illegal error response on valid address.",
+  "success_log": "Valid Read to Slave 0: RRESP=0x0.",
+  "rtl": "assign rresp = 2'b10;",
+  "fix_replacement": "assign rresp = (s0_sel || s1_sel) ? 2'b00 : 2'b11;",
+  "testbench": "task run(); `uvm_do_with(req, {addr == 0x1000;}) endtask",
+  "forbidden_targets": [
+    "rdata"
+  ],
+  "valid_signals": [
+    "rresp",
+    "addr"
+  ],
+  "metadata": {
+    "channel": "R",
+    "bug_type": "Functional"
+  }
+}

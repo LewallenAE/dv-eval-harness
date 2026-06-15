@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_030",
+  "title": "Read Data (R) Channel Flow Control Violation",
+  "description": "Crossbar deasserts RVALID without RREADY being high, causing the Master to miss data.",
+  "bug_signature": "UVM_ERROR: [AXI_PROT_CHECK] RVALID dropped without RREADY high",
+  "expected_root_cause": "Read Response FIFO pop logic is combinational and doesn't check the AXI handshake status [1, 16].",
+  "expected_fix_contains": "if (rvalid && rready) rvalid <= 0",
+  "failure_coverage": 45.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=100: RVALID=1, RREADY=0\nT=110: RVALID=0 (Data lost!)\nUVM_ERROR: RVALID deasserted prematurely.",
+  "success_log": "RVALID held high until RREADY=1 is sampled.",
+  "rtl": "always_ff @(posedge clk) rvalid <= next_val;",
+  "fix_replacement": "always_ff @(posedge clk) if (rvalid && rready) rvalid <= 0; else if (new_data) rvalid <= 1;",
+  "testbench": "task run(); vif.rready <= 0; drive_read(); #50ns; endtask",
+  "forbidden_targets": [
+    "rdata"
+  ],
+  "valid_signals": [
+    "rvalid",
+    "rready"
+  ],
+  "metadata": {
+    "channel": "R",
+    "bug_type": "Handshake"
+  }
+}

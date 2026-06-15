@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_031",
+  "title": "Grant-Done Handshake Overlap \u2014 Next Grant Pre-asserted",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [PROT] No idle cycle between consecutive grants; gnt never de-asserted",
+  "rtl": "always_ff @(posedge clk)\n  if (done) gnt <= next_gnt;  // next_gnt already high \u2014 no gap",
+  "testbench": "task check(); drive_done(); endtask",
+  "expected_root_cause": "When the done signal fires, next_gnt is already asserted in the same cycle that the current grant is transferred; the downstream master sees no de-assertion gap between consecutive grants and interprets the continuous assertion as a single unbroken transaction.",
+  "expected_fix_contains": "else if (done) gnt <= 4'h0",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)       gnt <= 4'h0;\n  else if (done)    gnt <= 4'h0;      // Clear this cycle\n  else if (!gnt_active) gnt <= next_gnt;  // Assert next cycle",
+  "description": "When `done` fires, the logic simultaneously clears the current grant and asserts the next one in the same cycle; the receiving master sees a zero-cycle gap and misinterprets it as a continuous grant.",
+  "failure_log": "UVM_ERROR: [PROT] No idle cycle between consecutive grants; gnt never de-asserted",
+  "success_log": "One idle cycle observed between grants. Downstream correctly sees transaction boundary.",
+  "valid_signals": [
+    "gnt",
+    "next_gnt",
+    "done",
+    "gnt_active"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 50.0,
+  "success_coverage": 100.0
+}

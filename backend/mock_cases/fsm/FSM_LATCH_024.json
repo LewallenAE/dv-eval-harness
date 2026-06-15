@@ -1,0 +1,31 @@
+{
+  "id": "FSM_LATCH_024",
+  "title": "Case Output Latch \u2014 busy_bit Undriven in Unhandled States",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "RUN",
+    "PAUSE"
+  ],
+  "has_default_case": true,
+  "bug_signature": "VCS-WARNING: Latch inferred for 'busy_bit'; IDLE and ERROR states leave busy_bit undriven",
+  "rtl": "always_comb\n  case (state)\n    RUN:   busy_bit = 1'b1;\n    PAUSE: busy_bit = 1'b0;\n    // IDLE, ERROR unhandled \u2014 latch inferred\n  endcase",
+  "testbench": "initial state = IDLE;",
+  "expected_root_cause": "The always_comb case statement has no default or prior assignment for busy_bit; any state other than RUN or PAUSE leaves busy_bit without a driver, causing synthesis to infer a latch that holds the last known value.",
+  "expected_fix_contains": "busy_bit = 1'b0;  // Default before case",
+  "fix_replacement": "always_comb begin\n  busy_bit = 1'b0;  // Default before case \u2014 no latch\n  case (state)\n    RUN:   busy_bit = 1'b1;\n    PAUSE: busy_bit = 1'b0;\n  endcase\nend",
+  "description": "The case statement drives busy_bit for RUN and PAUSE but has no default; in IDLE and ERROR states busy_bit is undriven, synthesis infers a latch to preserve the last RUN or PAUSE value.",
+  "failure_log": "VCS-WARNING: Latch inferred for 'busy_bit'; IDLE and ERROR states leave busy_bit undriven",
+  "success_log": "busy_bit=0 in IDLE and ERROR. No latch warnings in synthesis.",
+  "valid_signals": [
+    "busy_bit",
+    "state"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 10.0,
+  "success_coverage": 100.0
+}

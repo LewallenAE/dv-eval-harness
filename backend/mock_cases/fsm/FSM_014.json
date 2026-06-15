@@ -1,0 +1,24 @@
+{
+  "id": "FSM_014",
+  "title": "FSM State Encoding Width Mismatch",
+  "description": "FSM uses binary encoding but the state register is only 1 bit wide for 4 states.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "VCS-WARNING: Signal 'state' width (1) is less than required for enum (2)",
+  "expected_root_cause": "Implicit width truncation in the state register definition [2, 25].",
+  "expected_fix_contains": "logic [1:0] state;",
+  "rtl": "logic state; typedef enum {A,B,C,D} e_st;",
+  "testbench": "initial begin #10; state=C; end",
+  "failure_log": "State=C (2'b10) truncated to 0. FSM stuck in state A.",
+  "success_log": "Full 2-bit state register used; all 4 states reachable.",
+  "fix_replacement": "typedef enum logic [1:0] {A,B,C,D} state_e; state_e state;",
+  "forbidden_targets": [
+    "rst_n"
+  ],
+  "valid_signals": [
+    "state"
+  ]
+}

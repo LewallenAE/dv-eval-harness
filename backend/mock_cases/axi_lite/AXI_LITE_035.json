@@ -1,0 +1,25 @@
+{
+  "id": "AXI_LITE_035",
+  "title": "UVM Configuration Database Type Mismatch",
+  "description": "Testbench fails to set the virtual interface correctly because the string name in `uvm_config_db` does not match the Crossbar's internal `get` call.",
+  "bug_signature": "UVM_FATAL: [NOVIF] virtual interface must be set for: crossbar.vif",
+  "expected_root_cause": "Mismatch between `set` and `get` scopes or instance names [23, 24].",
+  "expected_fix_contains": "uvm_config_db#(virtual axi_lite_if)::get(this, \"\", \"vif\", vif)",
+  "failure_coverage": 0.0,
+  "success_coverage": 100.0,
+  "failure_log": "UVM_INFO: Setting vif for 'uvm_test_top.*'\nUVM_FATAL: Crossbar component could not find vif.",
+  "success_log": "Virtual interface handle obtained successfully.",
+  "rtl": "if(!uvm_config_db#(virtual axi_lite_if)::get(this, \"\", \"VIF\", vif))",
+  "fix_replacement": "if(!uvm_config_db#(virtual axi_lite_if)::get(this, \"\", \"vif\", vif))",
+  "testbench": "uvm_config_db#(virtual axi_lite_if)::set(null, \"*\", \"vif\", vif);",
+  "forbidden_targets": [
+    "vif"
+  ],
+  "valid_signals": [
+    "vif"
+  ],
+  "metadata": {
+    "channel": "GEN",
+    "bug_type": "UVM"
+  }
+}

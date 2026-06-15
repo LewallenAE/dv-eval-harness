@@ -1,0 +1,26 @@
+{
+  "id": "ARB_016",
+  "title": "Arbiter Grant-Done Handshake Bug",
+  "description": "Arbiter clears GNT one cycle before the transaction is finished.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [PROT] Data phase truncated",
+  "expected_root_cause": "Termination logic triggers on 'LAST' signal rather than 'DONE' handshake [4, 27].",
+  "expected_fix_contains": "if (last && done) gnt <= 0;",
+  "rtl": "if (last) gnt <= 0; // done happens next cycle",
+  "testbench": "task run(); drive_packet(); endtask",
+  "failure_log": "T=100: Last byte driven. GNT fell. T=110: Handshake finished (Too late).",
+  "success_log": "GNT held high until the final ACK is received from slave.",
+  "fix_replacement": "always_ff @(posedge clk) if(valid && ready && last) gnt <= 0;",
+  "forbidden_targets": [
+    "req"
+  ],
+  "valid_signals": [
+    "gnt",
+    "last",
+    "done"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "id": "RR_ARB_028",
+  "title": "Incomplete Priority Rotation for 3 Masters (Using Bitwise NOT)",
+  "family": "round_robin",
+  "num_masters": 3,
+  "fairness_window": 3,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [FAIRNESS] Master 2 never granted; last_gnt oscillates 0\u21941 only",
+  "rtl": "always_ff @(posedge clk)\n  if (gnt_done) last_gnt <= ~last_gnt;  // Works for 2 masters only",
+  "testbench": "task check(); drive_all(); endtask",
+  "expected_root_cause": "The pointer uses bitwise NOT (~last_gnt) as an increment, which oscillates correctly between 0 and 1 for two masters but never reaches index 2 in a 3-master design because ~2'b10 = 2'b01, not 2'b11.",
+  "expected_fix_contains": "last_gnt == 2'h2) ? 2'h0 : last_gnt + 1",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)    last_gnt <= 2'h0;\n  else if (gnt_done) last_gnt <= (last_gnt == 2'h2) ? 2'h0 : last_gnt + 1;",
+  "description": "Bitwise NOT on a 2-bit pointer only works for 2 masters (0\u21941); with 3 masters it skips master 2 because ~2'b10 = 2'b01 rather than 2'b10 \u2192 2'b00.",
+  "failure_log": "UVM_ERROR: [FAIRNESS] Master 2 never granted; last_gnt oscillates 0\u21941 only",
+  "success_log": "last_gnt cycles 0\u21921\u21922\u21920 correctly. All 3 masters granted in sequence.",
+  "valid_signals": [
+    "last_gnt",
+    "gnt_done"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 15.0,
+  "success_coverage": 100.0
+}

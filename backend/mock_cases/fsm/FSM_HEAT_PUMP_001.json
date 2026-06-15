@@ -1,0 +1,35 @@
+{
+  "id": "FSM_HEAT_PUMP_001",
+  "title": "Heat Pump FSM \u2014 RUNNING and ERROR States Unhandled",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "one_hot",
+  "state_enum": [
+    "IDLE",
+    "STARTUP",
+    "RUNNING",
+    "FAULT"
+  ],
+  "has_default_case": false,
+  "bug_signature": "UVM_FATAL: [DEADLOCK] Heat pump FSM trapped in RUNNING; stop signal ignored",
+  "rtl": "always_comb begin\n  case (state)\n    IDLE:    if (start) next = STARTUP;\n    STARTUP: next = RUNNING;\n    // RUNNING and ERROR have no branches \u2014 FSM trapped\n  endcase\nend",
+  "testbench": "initial begin reset = 1; #10 reset = 0; start = 1; end",
+  "expected_root_cause": "The case statement has branches only for IDLE and STARTUP; the RUNNING and ERROR states have no matching branches, so next is undriven when the FSM reaches either of those states and the controller freezes.",
+  "expected_fix_contains": "RUNNING: if (stop || fault) next = IDLE",
+  "fix_replacement": "always_comb begin\n  next = state;  // Hold by default\n  case (state)\n    IDLE:    if (start) next = STARTUP;\n    STARTUP: next = RUNNING;\n    RUNNING: if (stop || fault) next = IDLE;\n    ERROR:   next = IDLE;\n    default: next = IDLE;\n  endcase\nend",
+  "description": "The heat pump controller FSM handles IDLE and STARTUP in the next-state logic but has no branches for RUNNING or ERROR; once in RUNNING the FSM never transitions out, and ERROR is a permanent trap.",
+  "failure_log": "UVM_FATAL: [DEADLOCK] Heat pump FSM trapped in RUNNING; stop signal ignored",
+  "success_log": "FSM exits RUNNING on stop or fault. ERROR returns to IDLE in one cycle.",
+  "valid_signals": [
+    "state",
+    "next",
+    "start",
+    "stop",
+    "fault"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

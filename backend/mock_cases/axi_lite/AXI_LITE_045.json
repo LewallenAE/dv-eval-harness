@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_045",
+  "title": "Reset Value of Configuration Register",
+  "description": "An internal Crossbar config register (e.g., priority weights) starts at an illegal value (X) after reset.",
+  "bug_signature": "UVM_ERROR: [REG_VAL] Config register contains 32'hXXXXXXXX after reset",
+  "expected_root_cause": "The register lacks a reset branch in its `always_ff` block [2, 31].",
+  "expected_fix_contains": "if (!rst_n) config_reg <= 0",
+  "failure_coverage": 10.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=10: rst_n=0. T=20: rst_n=1. config_reg = X.\nUVM_FATAL: Arbiter in indeterminate state.",
+  "success_log": "config_reg initialized to 0 after reset.",
+  "rtl": "always_ff @(posedge clk) config_reg <= next_val;",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n) if (!rst_n) config_reg <= 0; else config_reg <= next_val;",
+  "testbench": "initial begin rst_n=0; #20; assert(config_reg === 0); end",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "rst_n",
+    "config_reg"
+  ],
+  "metadata": {
+    "channel": "GEN",
+    "bug_type": "Reset"
+  }
+}

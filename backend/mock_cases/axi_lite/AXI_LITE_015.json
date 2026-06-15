@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_015",
+  "title": "RRESP SLVERR Incorrectly Returned for Valid Read",
+  "description": "All read responses carry RRESP=2'b10 (SLVERR) regardless of whether the address is valid, causing the master to abort all read transactions.",
+  "bug_signature": "UVM_ERROR: [SBD_MISMATCH] Expected RRESP=OKAY (0), Got SLVERR (2) for valid address 0x0100",
+  "expected_root_cause": "The RRESP mux has its inputs swapped; SLVERR is wired where OKAY should be [19].",
+  "expected_fix_contains": "rresp = (err) ? 2'b10 : 2'b00",
+  "failure_coverage": 80.0,
+  "success_coverage": 100.0,
+  "failure_log": "ADDR=0x0100 (valid, mapped to S0). RRESP=2'b10.\nMaster aborted transaction.\nUVM_ERROR: Unexpected SLVERR.",
+  "success_log": "RRESP=2'b00 for valid addresses; 2'b10 only for unmapped addresses.",
+  "rtl": "assign rresp = (valid_addr) ? 2'b10 : 2'b00;",
+  "fix_replacement": "assign rresp = (valid_addr) ? 2'b00 : 2'b10;",
+  "testbench": "task run(); `uvm_do_with(req, {addr == 16'h0100;}) cg.sample(); endtask",
+  "forbidden_targets": [
+    "rdata"
+  ],
+  "valid_signals": [
+    "rresp",
+    "valid_addr"
+  ],
+  "metadata": {
+    "channel": "R",
+    "bug_type": "Functional"
+  }
+}

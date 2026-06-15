@@ -1,0 +1,16 @@
+{
+  "id": "FIFO_ASYNC_025",
+  "title": "Asynchronous FIFO Binary Pointer CDC",
+  "family": "fifo_buffer",
+  "machine_type": "n/a",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [CDC_FAIL] Multi-bit transition sampled as illegal value",
+  "rtl": "always_ff @(posedge clk_r) wr_ptr_sync <= wr_ptr_bin;",
+  "testbench": "initial fork write_fast(); read_slow(); join",
+  "expected_root_cause": "Passing binary pointers across clock domains allows multiple bits to change, leading to metastability and incorrect sampling [11, 28].",
+  "expected_fix_contains": "wr_ptr_gray <= wr_ptr_bin ^ (wr_ptr_bin >> 1);",
+  "fix_replacement": "bin_to_gray(wr_ptr, wr_ptr_gray); sync_gray_ptr(wr_ptr_gray, wr_ptr_gray_sync);",
+  "description": "Clock Domain Crossing failure due to non-Gray encoded pointer synchronization."
+}

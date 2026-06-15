@@ -1,0 +1,27 @@
+{
+  "id": "RR_ARB_033",
+  "title": "X-State on Request Bus Propagates to Grant",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 10,
+  "sticky_until": "none",
+  "bug_signature": "UVM_ERROR: [SVA_XZ] gnt=4'bxxxx after req contains X; X propagated through arbiter",
+  "rtl": "assign gnt = (req == 4'h1) ? 4'h1 :\n              (req == 4'h2) ? 4'h2 : 4'h0;  // X on req \u2192 X on gnt via ==",
+  "testbench": "initial force req = 1'bX;",
+  "expected_root_cause": "The equality comparison (req == value) propagates unknown (X) bits from req directly to gnt; when any bit of req is X, the comparison result is also X and the grant bus becomes unknown, corrupting all downstream logic.",
+  "expected_fix_contains": "if (!$isunknown(req))",
+  "fix_replacement": "always_comb begin\n  gnt = 4'h0;\n  if (!$isunknown(req)) begin  // Guard against X propagation\n    priority case (1'b1)\n      req[last_gnt]:          gnt = 4'h1 << last_gnt;\n      req[(last_gnt+1) % 4]:  gnt = 4'h1 << ((last_gnt+1) % 4);\n      req[(last_gnt+2) % 4]:  gnt = 4'h1 << ((last_gnt+2) % 4);\n      req[(last_gnt+3) % 4]:  gnt = 4'h1 << ((last_gnt+3) % 4);\n    endcase\n  end\nend",
+  "description": "When `req` contains an unknown (X) bit the combinational arbiter propagates X to `gnt`, corrupting the bus.",
+  "failure_log": "UVM_ERROR: [SVA_XZ] gnt=4'bxxxx after req contains X; X propagated through arbiter",
+  "success_log": "gnt=4'h0 when req is unknown. No X propagation.",
+  "valid_signals": [
+    "gnt",
+    "req",
+    "last_gnt"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 15.0,
+  "success_coverage": 100.0
+}

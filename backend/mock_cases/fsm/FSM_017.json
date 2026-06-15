@@ -1,0 +1,25 @@
+{
+  "id": "FSM_017",
+  "title": "FSM Moore Output Registered One Cycle Late",
+  "description": "The Moore FSM output is sampled from state registers but drives a downstream module that expects the output to reflect the current state, not the previous one.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [SBD_DATA] Output valid late by 1 cycle relative to state entry",
+  "expected_root_cause": "Moore output is registered in the same always_ff block as the state register, adding one extra pipeline stage [8, 12].",
+  "expected_fix_contains": "assign out_valid = (state == ACTIVE);",
+  "rtl": "always_ff @(posedge clk) out_valid <= (state == ACTIVE);",
+  "testbench": "initial begin state_in = ACTIVE; @(posedge clk); assert(out_valid == 1); end",
+  "failure_log": "T=10: state=ACTIVE. T=10+: out_valid=0 (one cycle late). Expected=1.",
+  "success_log": "out_valid combinationally reflects state == ACTIVE on same cycle.",
+  "fix_replacement": "assign out_valid = (state == ACTIVE);",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "state",
+    "out_valid"
+  ]
+}

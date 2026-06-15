@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_039",
+  "title": "Metastability in Cross-Clock Arbiter",
+  "description": "The grant signal is passed between two different clock domains without a double-flop synchronizer.",
+  "bug_signature": "UVM_ERROR: [SIM_GLITCH] Metastable value detected on GNT signal",
+  "expected_root_cause": "Clock Domain Crossing (CDC) violation: asynchronous signals sampled directly [29, 30].",
+  "expected_fix_contains": "reg [1:0] sync_regs",
+  "failure_coverage": 2.0,
+  "success_coverage": 100.0,
+  "failure_log": "GNT changes at 10.5ns (Setup violation).\nSlave FSM enters ILLEGAL state.",
+  "success_log": "GNT synchronized via 2-stage shift register.",
+  "rtl": "always_ff @(posedge clk_s) s_gnt <= m_gnt;",
+  "fix_replacement": "always_ff @(posedge clk_s) begin sync_regs <= {sync_regs, m_gnt}; s_gnt <= sync_regs[1]; end",
+  "testbench": "initial begin force clk_s = 1; #0.5; force clk_m = 1; end",
+  "forbidden_targets": [
+    "m_gnt"
+  ],
+  "valid_signals": [
+    "s_gnt",
+    "clk_s"
+  ],
+  "metadata": {
+    "channel": "ARB",
+    "bug_type": "Reliability"
+  }
+}

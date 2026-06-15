@@ -1,0 +1,20 @@
+{
+  "id": "FSM_GHOST_039",
+  "title": "FSM Transient Pulse on Unassigned State",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "S0",
+    "S1",
+    "S2"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SVA_GLITCH] ACK pulsed in illegal state",
+  "rtl": "always_comb case(state) S2: ack = 1; default: ; endcase",
+  "testbench": "initial begin state = S2; #10 state = 3'b111; end",
+  "expected_root_cause": "Combinational output logic does not explicitly zero signals in the default case, causing transients [4, 5].",
+  "expected_fix_contains": "default: ack = 0;",
+  "fix_replacement": "always_comb begin ack = 0; case(state) S2: ack = 1; endcase end",
+  "description": "Combinational logic bug where undefined states hold stale high values."
+}

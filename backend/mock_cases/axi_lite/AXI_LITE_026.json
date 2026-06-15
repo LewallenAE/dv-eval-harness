@@ -1,0 +1,27 @@
+{
+  "id": "AXI_LITE_026",
+  "title": "Reset-to-Valid Handshake Violation",
+  "description": "The Master asserts AWVALID in the same cycle that reset is deasserted, but the Crossbar logic is not yet initialized.",
+  "bug_signature": "UVM_ERROR: [SVA_VIOLATION] AWVALID asserted before reset high-time met",
+  "expected_root_cause": "Crossbar expects 1 cycle of 'quiet' time after reset, violating AXI-Lite's immediate operational capability [11].",
+  "expected_fix_contains": "if (!rst_n) state <= IDLE",
+  "failure_coverage": 25.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=50: rst_n=1, awvalid=1. Crossbar state=UNKNOWN.\nUVM_FATAL: System crashed after reset.",
+  "success_log": "T=50: rst_n=1, awvalid=1. Handshake successful.",
+  "rtl": "always_ff @(posedge clk) state <= next_state; // Missing reset",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n) if (!rst_n) state <= IDLE; else state <= next_state;",
+  "testbench": "initial begin rst_n=0; #50; rst_n=1; drive_aw(); end",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "rst_n",
+    "awvalid",
+    "state"
+  ],
+  "metadata": {
+    "channel": "GEN",
+    "bug_type": "Reset"
+  }
+}

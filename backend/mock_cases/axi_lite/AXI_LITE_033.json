@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_033",
+  "title": "Missing Clock Dependency in Sequential Block",
+  "description": "Write Address Ready (AWREADY) is implemented in an always block without a clock edge, causing it to act as combinational logic with latches.",
+  "bug_signature": "VCS-WARNING: Latch inferred for signal 'awready'",
+  "expected_root_cause": "Synthesis violation: sequential signal not assigned within always_ff @(posedge clk) [2, 9].",
+  "expected_fix_contains": "always_ff @(posedge clk)",
+  "failure_coverage": 10.0,
+  "success_coverage": 100.0,
+  "failure_log": "Compiler Warning: awready is sensitive to reset but not clock.\nUVM_ERROR: Latch detected in critical path.",
+  "success_log": "awready updated on posedge clk.",
+  "rtl": "always @(rst_n) if (!rst_n) awready = 0;",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n) if (!rst_n) awready <= 0; else awready <= 1;",
+  "testbench": "initial assert(awready == 0);",
+  "forbidden_targets": [
+    "rst_n"
+  ],
+  "valid_signals": [
+    "awready",
+    "clk"
+  ],
+  "metadata": {
+    "channel": "AW",
+    "bug_type": "Synthesizability"
+  }
+}

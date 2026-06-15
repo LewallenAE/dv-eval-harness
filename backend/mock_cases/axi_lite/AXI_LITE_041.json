@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_041",
+  "title": "Master ID Tag Mismatch (Out-of-order Error)",
+  "description": "Crossbar returns Read Data to Master 1 that was requested by Master 0.",
+  "bug_signature": "UVM_FATAL: [SBD_MISMATCH] Master 1 received unexpected RDATA from M0 request",
+  "expected_root_cause": "The internal transaction ID tracker uses a single register instead of a FIFO, causing ID overwrites in concurrent requests [33, 34].",
+  "expected_fix_contains": "fifo_id.push(current_id)",
+  "failure_coverage": 40.0,
+  "success_coverage": 100.0,
+  "failure_log": "Req M0 (ID=0), Req M1 (ID=1).\nResp M1 (ID=0). ERROR.",
+  "success_log": "Read responses correctly tagged with originating Master ID.",
+  "rtl": "reg last_id; always_ff @(posedge clk) last_id <= current_id;",
+  "fix_replacement": "uvm_tlm_fifo #(bit) id_fifo; // Logic to track outstanding IDs",
+  "testbench": "task run(); fork m0.read(); m1.read(); join endtask",
+  "forbidden_targets": [
+    "last_id"
+  ],
+  "valid_signals": [
+    "current_id",
+    "resp_id"
+  ],
+  "metadata": {
+    "channel": "ID",
+    "bug_type": "Functional"
+  }
+}

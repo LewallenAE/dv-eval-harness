@@ -1,0 +1,29 @@
+{
+  "id": "ARB_015",
+  "title": "Grant Collision \u2014 Logical OR Combines req and mask",
+  "description": "The grant output uses logical OR of req and mask instead of AND-NOT; this combines the request vector with the priority mask, granting masters that either requested OR are in the mask, producing simultaneous multi-master grants.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [MULTI_GNT] gnt=2'b11; both masters granted simultaneously via req|mask collision",
+  "expected_root_cause": "The grant computation uses bitwise OR (req | mask) instead of AND-NOT (req & ~mask); the OR operation grants any master whose bit is set in either the request or the priority mask, producing multi-master grants whenever any priority mask bit is set.",
+  "expected_fix_contains": "assign masked_req = req & ~priority_mask",
+  "rtl": "assign gnt = req | mask;  // Logical OR: grants masters in mask even if they didn't request",
+  "testbench": "task run(); req=2'b11; #10; endtask",
+  "failure_log": "UVM_ERROR: [MULTI_GNT] gnt=2'b11; both masters granted simultaneously via req|mask collision",
+  "success_log": "gnt is always one-hot. No simultaneous grants. Masked rotation works correctly.",
+  "fix_replacement": "assign masked_req = req & ~priority_mask;\nassign gnt = masked_req ? masked_req : req;  // Fall back to req if mask excludes all",
+  "forbidden_targets": [
+    "req"
+  ],
+  "valid_signals": [
+    "gnt",
+    "req",
+    "masked_req",
+    "priority_mask"
+  ],
+  "failure_coverage": 15.0,
+  "success_coverage": 100.0
+}

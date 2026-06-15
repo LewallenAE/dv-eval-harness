@@ -1,0 +1,26 @@
+{
+  "id": "RR_ARB_023",
+  "title": "Uninitialized Grant Register \u2014 X Propagation",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 0,
+  "sticky_until": "none",
+  "bug_signature": "UVM_ERROR: [SVA_XZ] gnt contains X bits on first posedge clk",
+  "rtl": "logic [3:0] gnt;  // No reset \u2014 starts as 4'bxxxx in simulation",
+  "testbench": "initial #10 assert(gnt === 0);",
+  "expected_root_cause": "The grant register gnt is declared without an always_ff reset branch; its initial value is 4'bxxxx (unknown), and unknown bits propagate to all downstream bus interface signals on the first active cycle.",
+  "expected_fix_contains": "if (!rst_n) gnt <= 4'h0",
+  "fix_replacement": "logic [3:0] gnt;\nalways_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) gnt <= 4'h0;\n  else        gnt <= next_gnt;",
+  "description": "The grant register is declared without a reset assignment; its initial X value propagates to the bus interface, corrupting the first transaction.",
+  "failure_log": "UVM_ERROR: [SVA_XZ] gnt contains X bits on first posedge clk",
+  "success_log": "gnt=4'h0 after reset. No X-propagation observed.",
+  "valid_signals": [
+    "gnt",
+    "rst_n"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

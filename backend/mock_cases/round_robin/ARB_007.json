@@ -1,0 +1,28 @@
+{
+  "id": "ARB_007",
+  "title": "Combinational Arbiter \u2014 No Reset, Grant X on Power-On",
+  "description": "The grant is driven by a continuous assign with no registered reset path; at power-on before req and mask are known, gnt reflects unknown inputs and can spuriously assert.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [SVA_XZ] gnt=2'bxx at t=0 before req/mask initialized; spurious grant during power-on",
+  "expected_root_cause": "The combinational assign propagates unknown (X) values from req and mask directly to gnt before those signals are initialized; there is no reset path to guarantee gnt=0 at power-on.",
+  "expected_fix_contains": "if (!rst_n) gnt <= 2'h0",
+  "rtl": "assign gnt = req & ~mask;  // Combinational: gnt=X if req or mask contain X",
+  "testbench": "initial begin rst_n=0; req=1; #5; rst_n=1; end",
+  "failure_log": "UVM_ERROR: [SVA_XZ] gnt=2'bxx at t=0 before req/mask initialized; spurious grant during power-on",
+  "success_log": "gnt=2'h0 after reset. First valid grant appears after req is driven.",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) gnt <= 2'h0;\n  else        gnt <= req & ~mask;",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "gnt",
+    "req",
+    "mask"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

@@ -1,0 +1,19 @@
+{
+  "id": "FSM_ASYNC_ERR_041",
+  "title": "FSM Multiple Sequential Blocks Driven",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "RUN"
+  ],
+  "has_default_case": true,
+  "bug_signature": "VCS-ERROR: Multi-driver contention on 'state'",
+  "rtl": "always_ff @(posedge clk) state <= n1; always_ff @(posedge clk) state <= n2;",
+  "testbench": "initial begin n1=0; n2=1; end",
+  "expected_root_cause": "The same state variable is driven by two separate sequential processes, which is illegal in synthesizable Verilog [2, 29].",
+  "expected_fix_contains": "always_ff @(posedge clk) state <= (sel) ? n1 : n2;",
+  "fix_replacement": "always_ff @(posedge clk) if(cond) state <= RUN; else state <= IDLE;",
+  "description": "Compiler error where a register is updated by competing logic blocks."
+}

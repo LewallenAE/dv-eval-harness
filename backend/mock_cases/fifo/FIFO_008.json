@@ -1,0 +1,26 @@
+{
+  "id": "FIFO_008",
+  "title": "FIFO Word Alignment Corruption",
+  "description": "FIFO only accepts 32-bit aligned writes, dropping unaligned data bytes.",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 32,
+  "depth": 16,
+  "pointer_width": 5,
+  "bug_signature": "UVM_ERROR: [SBD_SIZE] Expected 4 bytes, RTL accepted 0",
+  "expected_root_cause": "The write logic lacks support for Byte Strobes or partial word writes [18, 19].",
+  "expected_fix_contains": "if (be[i]) mem[ptr][i*8+:8] <= data[i*8+:8]",
+  "rtl": "always_ff @(posedge clk) if(wr_en) mem[ptr] <= data;",
+  "testbench": "task run(); push_byte(0xAA); endtask",
+  "failure_log": "Byte write issued. wr_en=1 but mem remains 0.",
+  "success_log": "Individual bytes updated based on strobe signal.",
+  "fix_replacement": "integer i; always_ff @(posedge clk) if(wr_en) for(i=0; i<4; i++) if(be[i]) mem[ptr][i*8+:8] <= data[i*8+:8];",
+  "forbidden_targets": [
+    "ptr"
+  ],
+  "valid_signals": [
+    "be",
+    "data",
+    "wr_en"
+  ]
+}

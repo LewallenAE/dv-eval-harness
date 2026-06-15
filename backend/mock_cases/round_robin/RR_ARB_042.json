@@ -1,0 +1,26 @@
+{
+  "id": "RR_ARB_042",
+  "title": "Priority Mask Off-by-One \u2014 Current Master Included",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 4,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [FAIRNESS] Same master granted twice consecutively; off-by-one in mask",
+  "rtl": "assign mask = (4'h1 << last_gnt) - 1;  // Excludes 0..last_gnt-1 but includes last_gnt",
+  "testbench": "task check(); last_gnt = 0; req = 4'b1111; endtask",
+  "expected_root_cause": "The priority mask expression ((1 << last_gnt) - 1) excludes masters 0 through last_gnt-1 but incorrectly includes last_gnt itself in the grant-eligible set, allowing the same master to be granted twice in consecutive arbitration cycles.",
+  "expected_fix_contains": "mask = (4'h1 << (last_gnt + 1)) - 1",
+  "fix_replacement": "assign mask = (4'h1 << (last_gnt + 1)) - 1;  // Excludes 0..last_gnt inclusive",
+  "description": "The mask is `(1 << last_gnt) - 1`, which excludes masters 0 through last_gnt\u22121 correctly but includes last_gnt itself, re-granting the same master twice in a row.",
+  "failure_log": "UVM_ERROR: [FAIRNESS] Same master granted twice consecutively; off-by-one in mask",
+  "success_log": "Mask correctly excludes last_gnt. Each master granted exactly once per round.",
+  "valid_signals": [
+    "mask",
+    "last_gnt"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 25.0,
+  "success_coverage": 100.0
+}

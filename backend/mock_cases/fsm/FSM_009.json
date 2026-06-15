@@ -1,0 +1,26 @@
+{
+  "id": "FSM_009",
+  "title": "FSM Asynchronous Load Hazard",
+  "description": "FSM jumps to a random state when a combinational input glitches near the clock edge.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [FSM_STATE] Illegal transition observed",
+  "expected_root_cause": "Combinational input 'start' is not synchronized before being used in next-state logic [15].",
+  "expected_fix_contains": "always_ff @(posedge clk) start_q <= start;",
+  "rtl": "always_comb if (start) next_state = RUN;",
+  "testbench": "initial begin #10.1; start=1; #0.1; start=0; end",
+  "failure_log": "Glitched start signal caused FSM to enter state 2 instead of 1.",
+  "success_log": "Input synchronized; FSM stable.",
+  "fix_replacement": "always_ff @(posedge clk) begin start_sync <= start; if (start_sync) state <= RUN; end",
+  "forbidden_targets": [
+    "rst_n"
+  ],
+  "valid_signals": [
+    "start",
+    "state",
+    "clk"
+  ]
+}

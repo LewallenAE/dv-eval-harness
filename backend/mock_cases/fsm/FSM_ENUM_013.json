@@ -1,0 +1,20 @@
+{
+  "id": "FSM_ENUM_013",
+  "title": "Enum Type Mismatch Latch Inference",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "READ",
+    "WRITE"
+  ],
+  "has_default_case": true,
+  "bug_signature": "VCS-WARNING: Latch inferred for 'next_state' (Enum width mismatch)",
+  "rtl": "enum {IDLE, READ, WRITE} state; // Defaults to 32-bit int",
+  "testbench": "initial state = 1;",
+  "expected_root_cause": "Enum without explicit base type defaults to 32-bit integer, causing bit-width mismatches and latch inference in state logic [1, 2].",
+  "expected_fix_contains": "typedef enum logic [1:0]",
+  "fix_replacement": "typedef enum logic [1:0] {IDLE, READ, WRITE} state_e; state_e state, next_state;",
+  "description": "Synthesis warning where implicit width leads to inefficient hardware or latches."
+}

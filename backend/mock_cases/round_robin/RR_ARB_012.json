@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_012",
+  "title": "Grant Revoked During AXI Wait State",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 10,
+  "sticky_until": "ready",
+  "bug_signature": "UVM_ERROR: [PROT] gnt dropped while wait_sig=1; AXI transfer truncated",
+  "rtl": "assign gnt = req & mask;  // Grant drops when req drops during wait",
+  "testbench": "task check(); drive_req(M0); force wait_sig = 1; endtask",
+  "expected_root_cause": "The grant is a combinational function of req and mask; when the AXI slave asserts wait_sig to stall the bus and the master de-asserts req to wait, the grant drops mid-transfer corrupting the transaction.",
+  "expected_fix_contains": "if (wait_sig) gnt <= gnt",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)          gnt <= 4'h0;\n  else if (wait_sig)   gnt <= gnt;   // Freeze grant during stall\n  else                 gnt <= req & mask;",
+  "description": "An AXI slave asserts wait_sig to stall the bus, but the arbiter treats the de-asserted request as grant completion and moves to the next master, dropping the current master mid-transfer.",
+  "failure_log": "UVM_ERROR: [PROT] gnt dropped while wait_sig=1; AXI transfer truncated",
+  "success_log": "Grant frozen during wait_sig. Transfer completes without interruption.",
+  "valid_signals": [
+    "gnt",
+    "req",
+    "wait_sig",
+    "mask"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 35.0,
+  "success_coverage": 100.0
+}

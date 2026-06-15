@@ -1,0 +1,33 @@
+{
+  "id": "FSM_ILLEGAL_020",
+  "title": "FSM Ghost Transition \u2014 Illegal States Have No Escape",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "binary",
+  "state_enum": [
+    "S0",
+    "S1",
+    "S2"
+  ],
+  "has_default_case": false,
+  "bug_signature": "UVM_FATAL: [FSM_LOCK] state=3'h4 (illegal); next_state=3'bx; FSM hung",
+  "rtl": "always_comb begin\n  next_state = state;\n  case (state)\n    S0: if (go)   next_state = S1;\n    S1: if (done) next_state = S2;\n    S2:           next_state = S0;\n    // States 3-7 unhandled \u2014 FSM freezes on illegal entry\n  endcase\nend",
+  "testbench": "initial force state = 3; #10 release state;",
+  "expected_root_cause": "The 3-bit state register can encode values 3 through 7 which are not used by the design; the case statement has no default branch, so any illegal state results in next_state=X and the FSM permanently freezes.",
+  "expected_fix_contains": "default:      next_state = S0",
+  "fix_replacement": "always_comb begin\n  next_state = state;\n  case (state)\n    S0: if (go)   next_state = S1;\n    S1: if (done) next_state = S2;\n    S2:           next_state = S0;\n    default:      next_state = S0;  // Recover any illegal state\n  endcase\nend",
+  "description": "A 3-bit state encoding for a 3-state machine (S0, S1, S2) has 5 unused encodings (3\u20137); an SEU or scan-chain glitch landing in those states leaves next_state as X and the FSM frozen.",
+  "failure_log": "UVM_FATAL: [FSM_LOCK] state=3'h4 (illegal); next_state=3'bx; FSM hung",
+  "success_log": "Illegal state injection (state=3'h6): returns to S0 in one cycle.",
+  "valid_signals": [
+    "state",
+    "next_state",
+    "go",
+    "done"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

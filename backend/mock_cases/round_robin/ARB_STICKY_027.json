@@ -1,0 +1,16 @@
+{
+  "id": "ARB_STICKY_027",
+  "title": "Combinational Grant Pulse Glitch",
+  "family": "round_robin",
+  "machine_type": "mealy",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [PROT_CHECK] GNT asserted for 0.1ns",
+  "rtl": "assign gnt = (req & mask);",
+  "testbench": "initial #10 req = 2'b11; #1 mask = 2'b01; #1 mask = 2'b10;",
+  "expected_root_cause": "Grant signals are purely combinational and pulse during priority rotation before settling [11, 30].",
+  "expected_fix_contains": "always_ff @(posedge clk) gnt <= next_gnt;",
+  "fix_replacement": "always_ff @(posedge clk) gnt <= (req_comb & mask_comb);",
+  "description": "Timing hazard where combinational logic transitions cause illegal short-duration grant pulses."
+}

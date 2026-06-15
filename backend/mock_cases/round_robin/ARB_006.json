@@ -1,0 +1,26 @@
+{
+  "id": "ARB_006",
+  "title": "Arbiter Fixed Priority Bug",
+  "description": "Arbiter always grants Master 0 even if Master 1 has a higher priority in the current rotation.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [FAIRNESS] Master 0 granted 10 times in a row",
+  "expected_root_cause": "The priority rotation logic uses a fixed constant instead of the 'last_granted' pointer [4, 5].",
+  "expected_fix_contains": "priority case (last_gnt)",
+  "rtl": "assign gnt = req ? 0 : 1;",
+  "testbench": "task run(); fork m0.high_traffic(); m1.high_traffic(); join endtask",
+  "failure_log": "Fairness index < 0.1. M1 starvation.",
+  "success_log": "Fairness index ~0.5. Requests served equally.",
+  "fix_replacement": "always_comb case(last_gnt) 0: gnt = req[9] ? 1 : 0; 1: gnt = req ? 0 : 1; endcase",
+  "forbidden_targets": [
+    "rst_n"
+  ],
+  "valid_signals": [
+    "req",
+    "gnt",
+    "last_gnt"
+  ]
+}

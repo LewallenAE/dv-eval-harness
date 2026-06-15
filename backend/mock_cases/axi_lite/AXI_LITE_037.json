@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_037",
+  "title": "Grant Latch in Arbiter",
+  "description": "The grant signal is not reset to 0 when all requests are low, causing the last master to maintain access indefinitely.",
+  "bug_signature": "UVM_ERROR: [SBD_CONT] Slave 0 still selected with 0 active requests",
+  "expected_root_cause": "A combinational 'if' statement without an 'else' clause in an always block infers a latch [9, 27].",
+  "expected_fix_contains": "else gnt = 0",
+  "failure_coverage": 15.0,
+  "success_coverage": 90.0,
+  "failure_log": "REQ0=0, REQ1=0, GNT0=1 (Latched).\nUVM_ERROR: Persistent grant error.",
+  "success_log": "Grant returns to IDLE state when no requests are pending.",
+  "rtl": "always_comb begin if (req0) gnt0 = 1; end",
+  "fix_replacement": "always_comb begin gnt0 = 0; if (req0) gnt0 = 1; end",
+  "testbench": "task run(); drive_req0(1); #10; drive_req0(0); #10; assert(gnt0 == 0); endtask",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "req0",
+    "gnt0"
+  ],
+  "metadata": {
+    "channel": "ARB",
+    "bug_type": "Synthesizability"
+  }
+}

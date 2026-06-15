@@ -1,0 +1,26 @@
+{
+  "id": "RR_ARB_030",
+  "title": "Out-of-Bounds Grant Index (last_gnt Offset Error)",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [NO_GNT] gnt=4'h0 every cycle; no master ever granted",
+  "rtl": "assign gnt = 4'h1 << (last_gnt + 4);  // Shifts out of [3:0] range \u2014 always 0",
+  "testbench": "initial #100;",
+  "expected_root_cause": "The shift amount (last_gnt + 4) always places the one-hot grant bit in positions [7:4], which are outside the 4-bit gnt[3:0] vector; all shifted bits are truncated and gnt evaluates to 4'h0 every cycle.",
+  "expected_fix_contains": "assign gnt = 4'h1 << last_gnt",
+  "fix_replacement": "assign gnt = 4'h1 << last_gnt;",
+  "description": "The grant vector is driven as `1 << (last_gnt + 4)` instead of `1 << last_gnt`, shifting all grants 4 positions out of the 4-bit gnt vector \u2014 always producing 4'h0.",
+  "failure_log": "UVM_ERROR: [NO_GNT] gnt=4'h0 every cycle; no master ever granted",
+  "success_log": "gnt correctly one-hot: gnt[last_gnt] is high each arbitration cycle.",
+  "valid_signals": [
+    "gnt",
+    "last_gnt"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 0.0,
+  "success_coverage": 100.0
+}

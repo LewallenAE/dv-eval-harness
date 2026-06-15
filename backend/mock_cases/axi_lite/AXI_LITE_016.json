@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_016",
+  "title": "Write Channel Back-Pressure Not Applied to Master",
+  "description": "The crossbar continues accepting write data (WREADY=1) even when the internal write queue is full, causing data to be silently overwritten.",
+  "bug_signature": "UVM_ERROR: [SBD_DATA] Write queue overflow; transaction at 0x2000 overwrote 0x1000 data",
+  "expected_root_cause": "WREADY is hardwired to 1 instead of being gated by the write queue's full status [20].",
+  "expected_fix_contains": "assign wready = !wr_queue_full",
+  "failure_coverage": 45.0,
+  "success_coverage": 100.0,
+  "failure_log": "WR_QUEUE_FULL=1. WREADY=1 (incorrect). 5th write accepted \u2014 overwrote entry 0.\nUVM_ERROR: Data corruption.",
+  "success_log": "WREADY=0 when write queue is full; master waits.",
+  "rtl": "assign wready = 1'b1;",
+  "fix_replacement": "assign wready = !wr_queue_full;",
+  "testbench": "task run(); repeat(10) drive_write(); endtask",
+  "forbidden_targets": [
+    "wvalid"
+  ],
+  "valid_signals": [
+    "wready",
+    "wr_queue_full"
+  ],
+  "metadata": {
+    "channel": "W",
+    "bug_type": "Functional"
+  }
+}

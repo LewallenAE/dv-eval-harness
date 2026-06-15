@@ -1,0 +1,25 @@
+{
+  "id": "FSM_008",
+  "title": "FSM Output Clock-to-Q Violation",
+  "description": "Combinational output logic in FSM is too deep, causing setup time violations on the bus.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [TIMING] Setup violation on signal 'fsm_out'",
+  "expected_root_cause": "FSM outputs are Moore-type but not registered at the pins [10, 20].",
+  "expected_fix_contains": "always_ff @(posedge clk) fsm_out <= next_fsm_out;",
+  "rtl": "assign fsm_out = (state == ADDR_PHASE); // combinational",
+  "testbench": "initial assert(fsm_out_delay < setup_limit);",
+  "failure_log": "Path from state_reg to fsm_out is 4.5ns. Limit is 4ns.",
+  "success_log": "Output registered; path delay reduced to 0.5ns.",
+  "fix_replacement": "always_ff @(posedge clk) fsm_out <= (next_state == ADDR_PHASE);",
+  "forbidden_targets": [
+    "rst_n"
+  ],
+  "valid_signals": [
+    "fsm_out",
+    "state"
+  ]
+}

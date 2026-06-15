@@ -1,0 +1,25 @@
+{
+  "id": "ARB_014",
+  "title": "Arbiter Mask Rotation Skip",
+  "description": "Arbiter skips Master 1's turn because the mask incrementer wraps incorrectly.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [FAIRNESS] Master 1 never granted despite high traffic",
+  "expected_root_cause": "Modulo arithmetic for mask rotation uses 'count' instead of 'count+1' [4].",
+  "expected_fix_contains": "last_gnt <= (last_gnt + 1) % NUM_MASTERS;",
+  "rtl": "last_gnt <= last_gnt + 2; // skips every other",
+  "testbench": "task run(); fork m0.req(); m1.req(); m2.req(); join endtask",
+  "failure_log": "Grant sequence: 0, 2, 0, 2. Master 1 skipped.",
+  "success_log": "Grant sequence: 0, 1, 2, 0. Proper rotation.",
+  "fix_replacement": "always_ff @(posedge clk) last_gnt <= next_id;",
+  "forbidden_targets": [
+    "rst_n"
+  ],
+  "valid_signals": [
+    "last_gnt",
+    "gnt"
+  ]
+}

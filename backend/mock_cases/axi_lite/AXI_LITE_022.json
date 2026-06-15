@@ -1,0 +1,27 @@
+{
+  "id": "AXI_LITE_022",
+  "title": "Slave B-Channel Response Timing violation",
+  "description": "Crossbar returns BVALID before the W-channel transfer is complete.",
+  "bug_signature": "UVM_ERROR: [SBD_MISMATCH] BVALID seen before last WDATA beat",
+  "expected_root_cause": "Write Response FSM triggers on AWVALID instead of waiting for the WVALID/WREADY handshake [1].",
+  "expected_fix_contains": "if (aw_done && w_done) bvalid <= 1",
+  "failure_coverage": 55.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=50ns: AWVALID=1, AWREADY=1\nT=55ns: BVALID=1, BREADY=1\nT=60ns: WVALID=1 (Too Late!)\nUVM_FATAL: Out-of-order write response.",
+  "success_log": "BVALID asserted only after WVALID and AWVALID handshakes.",
+  "rtl": "always_ff @(posedge clk) if (awvalid && awready) bvalid <= 1;",
+  "fix_replacement": "always_ff @(posedge clk) if (aw_handshake && w_handshake) bvalid <= 1;",
+  "testbench": "task run(); drive_aw(); #20ns; drive_w(); endtask",
+  "forbidden_targets": [
+    "awready"
+  ],
+  "valid_signals": [
+    "awvalid",
+    "wvalid",
+    "bvalid"
+  ],
+  "metadata": {
+    "channel": "B",
+    "bug_type": "Ordering"
+  }
+}

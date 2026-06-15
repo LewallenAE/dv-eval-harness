@@ -1,0 +1,27 @@
+{
+  "id": "RR_ARB_015",
+  "title": "unique case Overlap with Multi-Bit Request",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "VCS-ERROR: unique case violation \u2014 multiple matching branches for req=4'b0011",
+  "rtl": "always_comb\n  unique case (1'b1)  // Fails when req is multi-hot\n    req[0]: gnt = 4'h1;\n    req[1]: gnt = 4'h2;\n    req[2]: gnt = 4'h4;\n    req[3]: gnt = 4'h8;\n  endcase",
+  "testbench": "initial req = 4'b0011;",
+  "expected_root_cause": "The unique case construct on the multi-hot req vector requires mutually exclusive branches; when two request bits are simultaneously set both branches match, causing a simulation error and undefined synthesis behavior.",
+  "expected_fix_contains": "priority case (1'b1)",
+  "fix_replacement": "always_comb begin\n  gnt = 4'h0;\n  priority case (1'b1)  // priority handles multi-hot correctly\n    req[last_gnt[1:0]]:            gnt = 4'h1 << last_gnt;\n    req[(last_gnt+1) % 4]:         gnt = 4'h1 << ((last_gnt+1) % 4);\n    req[(last_gnt+2) % 4]:         gnt = 4'h1 << ((last_gnt+2) % 4);\n    req[(last_gnt+3) % 4]:         gnt = 4'h1 << ((last_gnt+3) % 4);\n  endcase\nend",
+  "description": "unique case on a multi-hot req vector triggers a simulation error when two request bits are simultaneously set, because unique case expects mutually exclusive values.",
+  "failure_log": "VCS-ERROR: unique case violation \u2014 multiple matching branches for req=4'b0011",
+  "success_log": "priority case selects exactly one branch for all multi-hot req values.",
+  "valid_signals": [
+    "gnt",
+    "req",
+    "last_gnt"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 15.0,
+  "success_coverage": 100.0
+}

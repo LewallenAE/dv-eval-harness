@@ -1,0 +1,31 @@
+{
+  "id": "FSM_CASE_030",
+  "title": "unique case Violation on Concurrent One-Hot Bits",
+  "family": "fsm_controller",
+  "machine_type": "moore",
+  "encoding": "one_hot",
+  "state_enum": [
+    "S0",
+    "S1",
+    "S2"
+  ],
+  "has_default_case": true,
+  "bug_signature": "VCS-ERROR: unique case violation \u2014 state[0]=1 and state[7]=1 simultaneously; next_state=X",
+  "rtl": "always_comb begin\n  unique case (1'b1)\n    state[0]: next_state = S1;  // Violation if state[0] and state[7] both set\n    state[7]: next_state = S2;\n  endcase\nend",
+  "testbench": "initial begin state = 3'b011; end",
+  "expected_root_cause": "The unique case construct requires exactly one branch to match; when a one-hot encoding error causes state[0] and state[7] to be simultaneously set, the unique violation fires and next_state becomes X rather than falling through to a safe priority-encoded result.",
+  "expected_fix_contains": "priority case (1'b1)",
+  "fix_replacement": "always_comb begin\n  next_state = S0;\n  priority case (1'b1)\n    state[0]: next_state = S1;  // First match wins \u2014 no violation\n    state[7]: next_state = S2;\n    default:  next_state = S0;\n  endcase\nend",
+  "description": "A one-hot state register with a functional error can briefly have two bits set simultaneously; unique case fires a runtime violation and produces undefined next_state rather than resolving by priority.",
+  "failure_log": "VCS-ERROR: unique case violation \u2014 state[0]=1 and state[7]=1 simultaneously; next_state=X",
+  "success_log": "priority case: first matching branch selected for all state values including multi-hot. No violation.",
+  "valid_signals": [
+    "state",
+    "next_state"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 15.0,
+  "success_coverage": 100.0
+}

@@ -1,0 +1,27 @@
+{
+  "id": "RR_ARB_025",
+  "title": "Round-Robin Starvation \u2014 Pointer Only Advances on Idle",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [STARVE] Master 0 holds grant for 5000 cycles; pointer never advances",
+  "rtl": "always_ff @(posedge clk)\n  if (!any_req) last_gnt <= (last_gnt + 1) % 4;  // Advances on idle only",
+  "testbench": "task check(); drive_m3_only(); endtask",
+  "expected_root_cause": "The priority pointer advances only when all requests are idle (any_req=0) rather than after each grant; the first requesting master holds the grant indefinitely because the pointer never advances while any request is active.",
+  "expected_fix_contains": "else if (|gnt) last_gnt <= (last_gnt + 1) % 4",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)    last_gnt <= 2'h0;\n  else if (|gnt) last_gnt <= (last_gnt + 1) % 4;  // Advances on each grant",
+  "description": "The priority pointer advances only when all requests drop (idle), rather than after each grant, causing the first requesting master to be granted continuously.",
+  "failure_log": "UVM_ERROR: [STARVE] Master 0 holds grant for 5000 cycles; pointer never advances",
+  "success_log": "Pointer advances after each grant. All masters served within fairness window.",
+  "valid_signals": [
+    "last_gnt",
+    "gnt",
+    "any_req"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 95.0
+}

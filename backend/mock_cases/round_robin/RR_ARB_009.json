@@ -1,0 +1,25 @@
+{
+  "id": "RR_ARB_009",
+  "title": "Unmapped State Deadlock (Missing Default)",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 50,
+  "sticky_until": "done",
+  "bug_signature": "UVM_FATAL: [FSM_LOCK] state=3'h6 detected; arbiter frozen for 10000 cycles",
+  "rtl": "always_ff @(posedge clk)\n  case (state)  // 3-bit state, only 0-4 handled \u2014 no default\n    3'h0: state <= 3'h1;\n    3'h1: state <= 3'h2;\n    3'h2: state <= 3'h3;\n    3'h3: state <= 3'h4;\n    3'h4: state <= 3'h0;\n  endcase",
+  "testbench": "initial begin force state = 5; #10 release state; end",
+  "expected_root_cause": "The FSM case statement handles only states 0\u20134 with no default branch; an illegal state (5, 6, or 7) reached via scan-shift or glitch causes the arbiter to freeze permanently.",
+  "expected_fix_contains": "default: state <= 3'h0",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) state <= 3'h0;\n  else case (state)\n    3'h0: state <= 3'h1;\n    3'h1: state <= 3'h2;\n    3'h2: state <= 3'h3;\n    3'h3: state <= 3'h4;\n    3'h4: state <= 3'h0;\n    default: state <= 3'h0;  // Escape illegal states\n  endcase",
+  "description": "The 3-bit FSM state register can reach values 5, 6, or 7 from a glitch or scan-shift; without a default case the arbiter freezes in that illegal state.",
+  "failure_log": "UVM_FATAL: [FSM_LOCK] state=3'h6 detected; arbiter frozen for 10000 cycles",
+  "success_log": "Illegal state injection test: state returns to 3'h0 within 1 cycle. No lockup.",
+  "valid_signals": [
+    "state"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

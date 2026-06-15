@@ -1,0 +1,16 @@
+{
+  "id": "FIFO_ALMOST_021",
+  "title": "Almost Full Flag Threshold Off-by-One",
+  "family": "fifo_buffer",
+  "machine_type": "n/a",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SBD_FLOW] FIFO reported almost_full but count is 14/16",
+  "rtl": "assign almost_full = (count >= DEPTH - 1);",
+  "testbench": "task run(); repeat(15) push(); endtask",
+  "expected_root_cause": "Threshold logic uses incorrect subtraction constant for burst-protection requirement [26].",
+  "expected_fix_contains": "assign almost_full = (count >= THRESHOLD)",
+  "fix_replacement": "assign almost_full = (count >= 14); // For a 2-word margin",
+  "description": "Flow control bug causing premature backpressure on the bus."
+}

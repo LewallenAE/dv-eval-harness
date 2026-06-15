@@ -1,0 +1,32 @@
+{
+  "id": "FSM_MEALY_RACE_037",
+  "title": "Mealy Output Derived from next_state \u2014 Combinational Glitch",
+  "family": "fsm_controller",
+  "machine_type": "mealy",
+  "encoding": "binary",
+  "state_enum": [
+    "IDLE",
+    "ACTIVE"
+  ],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [GLITCH] fsm_out pulsed for <1 clk period on input_sig transition; downstream sampled glitch",
+  "rtl": "assign fsm_out = (next_state == ACTIVE);  // Derived from next_state \u2014 glitches on input transitions",
+  "testbench": "initial force clk = 1; #1 input = 1;",
+  "expected_root_cause": "fsm_out is assigned combinationally from next_state, which is itself a combinational function of state and input_sig; any glitch on input_sig propagates immediately to fsm_out as a sub-cycle pulse before the clock edge resolves it.",
+  "expected_fix_contains": "fsm_out <= (state == IDLE && input_sig == 1'b1)",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) fsm_out <= 1'b0;\n  else        fsm_out <= (state == IDLE && input_sig == 1'b1);",
+  "description": "The fsm_out signal is combinationally assigned from next_state rather than state; since next_state is a combinational function of state and inputs, fsm_out can glitch for a fraction of a cycle when inputs change between clock edges.",
+  "failure_log": "UVM_ERROR: [GLITCH] fsm_out pulsed for <1 clk period on input_sig transition; downstream sampled glitch",
+  "success_log": "fsm_out registered \u2014 stable, glitch-free. Only transitions on posedge clk.",
+  "valid_signals": [
+    "fsm_out",
+    "state",
+    "next_state",
+    "input_sig"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0
+}

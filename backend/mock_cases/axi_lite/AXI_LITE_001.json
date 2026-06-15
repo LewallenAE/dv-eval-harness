@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_001",
+  "title": "Write Address (AW) Handshake Violation",
+  "description": "Crossbar deasserts AWREADY before the Master deasserts AWVALID, violating the AXI-Lite handshake rule that READY must hold until VALID is sampled.",
+  "bug_signature": "UVM_ERROR: [AXI_PROT_CHECK] AWREADY dropped before AWVALID handshake complete",
+  "expected_root_cause": "The AW-channel READY logic is combinationally gated by an internal stall signal without a registered hold, causing READY to glitch low mid-handshake [1].",
+  "expected_fix_contains": "always_ff @(posedge clk) awready <=",
+  "failure_coverage": 35.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=20ns: AWVALID=1, AWREADY=1\nT=25ns: AWREADY=0 (premature)\nUVM_ERROR: READY dropped mid-handshake.",
+  "success_log": "AWREADY remains stable high until posedge clk samples AWVALID.",
+  "rtl": "assign awready = !internal_stall;",
+  "fix_replacement": "always_ff @(posedge clk) begin if (!rst_n) awready <= 0; else awready <= !internal_stall; end",
+  "testbench": "task run(); vif.awvalid <= 1; @(posedge clk); endtask",
+  "forbidden_targets": [
+    "awvalid"
+  ],
+  "valid_signals": [
+    "awvalid",
+    "awready"
+  ],
+  "metadata": {
+    "channel": "AW",
+    "bug_type": "Handshake"
+  }
+}

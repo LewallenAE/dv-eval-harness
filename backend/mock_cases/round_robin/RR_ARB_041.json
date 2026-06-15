@@ -1,0 +1,28 @@
+{
+  "id": "RR_ARB_041",
+  "title": "Arbiter False Grant on Active-Low Reset Glitch",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [PROT] gnt=1 while rst_n=0; spurious grant during active reset",
+  "rtl": "assign gnt = ~rst_n;  // gnt=1 when rst_n=0 (reset active) \u2014 wrong",
+  "testbench": "initial begin rst_n = 0; #10 rst_n = 1; end",
+  "expected_root_cause": "The grant is assigned as ~rst_n, making gnt equal to 1 whenever rst_n is 0 (active reset); this asserts a spurious grant to a bus master for the entire duration of the reset interval.",
+  "expected_fix_contains": "if (!rst_n) gnt <= 1'b0",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n) gnt <= 1'b0;\n  else        gnt <= req & ~last_gnt[0];",
+  "description": "The grant is tied to the inverse of the active-low reset signal; when rst_n is de-asserted low during reset the grant asserts spuriously, placing a bus master in an illegal active state.",
+  "failure_log": "UVM_ERROR: [PROT] gnt=1 while rst_n=0; spurious grant during active reset",
+  "success_log": "gnt=0 held throughout reset. Grant only asserted after rst_n rises.",
+  "valid_signals": [
+    "gnt",
+    "rst_n",
+    "req",
+    "last_gnt"
+  ],
+  "forbidden_targets": [
+    "rst_n"
+  ],
+  "failure_coverage": 10.0,
+  "success_coverage": 100.0
+}

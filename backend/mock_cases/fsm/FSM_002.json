@@ -1,0 +1,26 @@
+{
+  "id": "FSM_002",
+  "title": "1-Hot FSM Multiple Bits Set",
+  "description": "FSM enters an illegal state where multiple bits in a 1-hot vector are active.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_FATAL: [SVA_1HOT] State vector not one-hot: 3'b011",
+  "expected_root_cause": "Non-blocking assignment in a combinational block used to set the 1-hot vector [10, 11].",
+  "expected_fix_contains": "always_ff @(posedge clk) state <= next_state;",
+  "rtl": "always_comb begin if(set_a) state = 1; if(set_b) state[9] = 1; end",
+  "testbench": "initial begin set_a=1; set_b=1; #10; end",
+  "failure_log": "State=011. Concurrent assertions failed.",
+  "success_log": "Priority logic ensures only one bit in state vector is active.",
+  "fix_replacement": "always_comb begin next_state = 0; if(set_a) next_state = 1; else if(set_b) next_state[9] = 1; end",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "state",
+    "set_a",
+    "set_b"
+  ]
+}

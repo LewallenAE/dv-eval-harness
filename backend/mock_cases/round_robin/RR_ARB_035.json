@@ -1,0 +1,25 @@
+{
+  "id": "RR_ARB_035",
+  "title": "Modport Direction Conflict \u2014 Grant Net Multi-Driven",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 0,
+  "sticky_until": "none",
+  "bug_signature": "VCS-ERROR: Multi-driver conflict on net 'gnt'; driven by both u_arb and u_mon",
+  "rtl": "// Both arbiter and bus_monitor instantiated with master modport\narbiter    u_arb (.bus(axi_if.master));\nbus_monitor u_mon (.bus(axi_if.master));  // monitor should be slave",
+  "testbench": "initial #10 assert(gnt !== 1'bX);",
+  "expected_root_cause": "Both the arbiter and bus_monitor modules are instantiated with the master modport direction; both modules attempt to drive the gnt net simultaneously, producing a multi-driver conflict that forces the net to X.",
+  "expected_fix_contains": "u_mon (.bus(axi_if.slave))",
+  "fix_replacement": "// Fix: monitor uses slave modport (input-only)\narbiter     u_arb (.bus(axi_if.master));\nbus_monitor u_mon (.bus(axi_if.slave));",
+  "description": "Two modules both use a `master` modport and both drive `gnt`, causing a multi-driver conflict that results in X on the grant net.",
+  "failure_log": "VCS-ERROR: Multi-driver conflict on net 'gnt'; driven by both u_arb and u_mon",
+  "success_log": "Single driver on gnt. No multi-driver warnings.",
+  "valid_signals": [
+    "gnt"
+  ],
+  "forbidden_targets": [
+    "gnt"
+  ],
+  "failure_coverage": 0.0,
+  "success_coverage": 100.0
+}

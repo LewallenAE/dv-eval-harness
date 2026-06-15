@@ -1,0 +1,26 @@
+{
+  "id": "RR_ARB_020",
+  "title": "Vacuous Fairness Assertion \u2014 req Never Asserted",
+  "family": "round_robin",
+  "num_masters": 4,
+  "fairness_window": 10,
+  "sticky_until": "done",
+  "bug_signature": "UVM_WARNING: [VACUOUS] Assertion ap_fairness passed 0 times (antecedent never true)",
+  "rtl": "// SVA: fairness check\nassert property (@(posedge clk) req |-> ##[1:10] gnt);  // No cover \u2014 vacuous pass",
+  "testbench": "task check(); #100; // No requests driven endtask",
+  "expected_root_cause": "The SVA fairness property uses req as its antecedent but req is never driven high in the test; the implication is vacuously true every cycle and the assertion provides zero coverage of the actual arbitration logic.",
+  "expected_fix_contains": "cover  property (@(posedge clk) req)",
+  "fix_replacement": "assert property (@(posedge clk) disable iff (!rst_n) req |-> ##[1:10] gnt);\ncover  property (@(posedge clk) req);  // Ensure antecedent is exercised",
+  "description": "The SVA fairness check uses `req |-> ##[1:10] gnt` but req is never driven in the test, so the implication is vacuously true and the assertion passes with zero coverage.",
+  "failure_log": "UVM_WARNING: [VACUOUS] Assertion ap_fairness passed 0 times (antecedent never true)",
+  "success_log": "Fairness assertion triggered 100 times. Cover property hit 100 times.",
+  "valid_signals": [
+    "req",
+    "gnt"
+  ],
+  "forbidden_targets": [
+    "clk"
+  ],
+  "failure_coverage": 0.0,
+  "success_coverage": 100.0
+}

@@ -1,0 +1,27 @@
+{
+  "id": "ARB_004",
+  "title": "Arbiter False Grant on Zero and Concurrent Requests",
+  "description": "The case statement only covers individual one-hot request values; when req=2'b00 (no request) or req=2'b11 (both masters) the case has no matching branch, producing an undefined grant output.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [XZ] gnt=2'bxx for req=2'b00; undefined grant on no-request condition",
+  "expected_root_cause": "The case statement has no branches for req=2'b00 (both idle) and req=2'b11 (both requesting simultaneously), leaving gnt undriven and unknown for those two input combinations.",
+  "expected_fix_contains": "2'b11: gnt = 2'b01",
+  "rtl": "always_comb\n  case (req)\n    2'b01: gnt = 2'b01;\n    2'b10: gnt = 2'b10;\n    // 2'b00 and 2'b11 unhandled \u2014 gnt undefined\n  endcase",
+  "testbench": "task run(); req=1; #10; req=0; endtask",
+  "failure_log": "UVM_ERROR: [XZ] gnt=2'bxx for req=2'b00; undefined grant on no-request condition",
+  "success_log": "gnt=2'b00 for req=2'b00. gnt=2'b01 for req=2'b11. No X on gnt bus.",
+  "fix_replacement": "always_comb begin\n  gnt = 2'b00;  // Default: no grant\n  case (req)\n    2'b01: gnt = 2'b01;\n    2'b10: gnt = 2'b10;\n    2'b11: gnt = 2'b01;   // Both request: grant lower-indexed master\n    default: gnt = 2'b00;\n  endcase\nend",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "gnt",
+    "req"
+  ],
+  "failure_coverage": 15.0,
+  "success_coverage": 100.0
+}

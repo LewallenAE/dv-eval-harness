@@ -1,0 +1,16 @@
+{
+  "id": "FIFO_WR_PTR_029",
+  "title": "FIFO Write Pointer Skip on Full",
+  "family": "fifo_buffer",
+  "machine_type": "n/a",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SBD_DATA] Data lost at address 8",
+  "rtl": "always_ff @(posedge clk) if (wr_en) wr_ptr <= wr_ptr + 1;",
+  "testbench": "task run(); repeat(18) push(); endtask",
+  "expected_root_cause": "Write pointer increments even when the FIFO is full, causing data loss and pointer-scoreboard mismatch [6, 32].",
+  "expected_fix_contains": "if (wr_en && !full) wr_ptr <= wr_ptr + 1;",
+  "fix_replacement": "always_ff @(posedge clk) if (wr_en && !full) wr_ptr <= wr_ptr + 1;",
+  "description": "Functional bug where internal pointers drift from actual buffer content when backpressure is ignored."
+}

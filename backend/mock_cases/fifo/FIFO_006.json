@@ -1,0 +1,26 @@
+{
+  "id": "FIFO_006",
+  "title": "FIFO Write-Full Corruption",
+  "description": "FIFO allows writing one extra word when full, corrupting the first word.",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 32,
+  "depth": 8,
+  "pointer_width": 4,
+  "bug_signature": "UVM_ERROR: [SBD_COMP] Word 0 modified after full write",
+  "expected_root_cause": "Write enable logic checks 'full' status from the previous cycle instead of current cycle [1].",
+  "expected_fix_contains": "if (wr_en && !full)",
+  "rtl": "always_ff @(posedge clk) if (wr_en) mem[ptr] <= data; // Missing !full",
+  "testbench": "task run(); repeat(9) push(); endtask",
+  "failure_log": "Full=1. 9th push accepted. mem overwritten.",
+  "success_log": "9th push rejected by full flag gating.",
+  "fix_replacement": "if (wr_en && !full) mem[ptr] <= data;",
+  "forbidden_targets": [
+    "rd_en"
+  ],
+  "valid_signals": [
+    "full",
+    "wr_en",
+    "mem"
+  ]
+}

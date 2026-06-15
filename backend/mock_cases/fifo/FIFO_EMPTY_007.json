@@ -1,0 +1,16 @@
+{
+  "id": "FIFO_EMPTY_007",
+  "title": "FIFO Read-on-Empty Underflow",
+  "family": "fifo_buffer",
+  "machine_type": "n/a",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [SBD_SIZE] Scoreboard empty but RTL performed Read",
+  "rtl": "always_ff @(posedge clk) if (rd_en) rd_ptr <= rd_ptr + 1;",
+  "testbench": "task run(); @(posedge clk) rd_en = 1; endtask",
+  "expected_root_cause": "Read enable logic is not gated by the 'empty' status flag, allowing the pointer to increment on an empty buffer [6].",
+  "expected_fix_contains": "if (rd_en && !empty) rd_ptr <= rd_ptr + 1;",
+  "fix_replacement": "always_ff @(posedge clk) if (rd_en && !empty) rd_ptr <= rd_ptr + 1;",
+  "description": "Functional underflow where read pointer moves without valid data present."
+}

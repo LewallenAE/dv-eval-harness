@@ -1,0 +1,26 @@
+{
+  "id": "ARB_009",
+  "title": "Arbiter Grant-After-Reset Race",
+  "description": "Arbiter grants the bus to a Master whose request was active during reset, violating the spec.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [PROT] Spurious grant after reset",
+  "expected_root_cause": "Arbiter internal priority mask is not cleared during reset [10, 17].",
+  "expected_fix_contains": "if (!rst_n) mask <= 0;",
+  "rtl": "always_ff @(posedge clk) mask <= next_mask; // Missing reset",
+  "testbench": "initial begin req=1; rst_n=0; #10; rst_n=1; end",
+  "failure_log": "T=11: GNT=1 without new request cycle.",
+  "success_log": "Arbiter idle after reset until new request cycle.",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n) if(!rst_n) mask <= 0; else mask <= next_mask;",
+  "forbidden_targets": [
+    "req"
+  ],
+  "valid_signals": [
+    "mask",
+    "rst_n",
+    "gnt"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "id": "ARB_001",
+  "title": "Round-Robin Priority Starvation",
+  "description": "Arbiter resets priority to Master 0 after every transaction, causing Master 1 to starve.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 2,
+  "bug_signature": "UVM_ERROR: [STARVE] Master 1 request pending for 5000 cycles",
+  "expected_root_cause": "The 'Last Granted' register is cleared every cycle instead of being used to rotate priority [4].",
+  "expected_fix_contains": "always_ff @(posedge clk) if (gnt) last_gnt <= current_gnt;",
+  "rtl": "assign current_gnt = req ? 0 : 1; // Fixed priority",
+  "testbench": "task run(); fork m0.stream(); m1.request(); join endtask",
+  "failure_log": "M0 continuous grant. M1 GNT=0.",
+  "success_log": "Grant alternates between Master 0 and Master 1.",
+  "fix_replacement": "always_comb begin case(last_gnt) 0: next_gnt = req[9] ? 1 : 0; 1: next_gnt = req ? 0 : 1; endcase end",
+  "forbidden_targets": [
+    "rst_n"
+  ],
+  "valid_signals": [
+    "req",
+    "gnt",
+    "last_gnt"
+  ]
+}

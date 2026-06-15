@@ -1,0 +1,27 @@
+{
+  "id": "AXI_LITE_002",
+  "title": "Write Data (W) Valid Without Address Phase",
+  "description": "The Master sends WVALID before AWVALID, but the crossbar does not buffer the write data, causing data to be silently dropped.",
+  "bug_signature": "UVM_ERROR: [SBD_DATA] WDATA received with no pending AWADDR \u2014 data dropped",
+  "expected_root_cause": "The crossbar lacks a write-data buffer for out-of-order W/AW arrival; it expects strict AW-before-W ordering not required by AXI-Lite [1, 2].",
+  "expected_fix_contains": "if (wvalid && !aw_pending) wdata_buf <= wdata",
+  "failure_coverage": 45.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=10: WVALID=1, AWVALID=0. Crossbar discarded WDATA.\nUVM_ERROR: Scoreboard mismatch \u2014 data not written.",
+  "success_log": "Crossbar buffers WDATA until AWADDR arrives and issues combined write.",
+  "rtl": "always_ff @(posedge clk) if (awvalid && wvalid) do_write <= 1;",
+  "fix_replacement": "always_ff @(posedge clk) begin if (wvalid) wdata_buf <= wdata; if (awvalid && w_buf_valid) do_write <= 1; end",
+  "testbench": "task run(); vif.wvalid <= 1; #10; vif.awvalid <= 1; endtask",
+  "forbidden_targets": [
+    "wready"
+  ],
+  "valid_signals": [
+    "awvalid",
+    "wvalid",
+    "wdata"
+  ],
+  "metadata": {
+    "channel": "W",
+    "bug_type": "Ordering"
+  }
+}

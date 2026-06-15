@@ -1,0 +1,26 @@
+{
+  "id": "FSM_004",
+  "title": "FSM Reset Synchronous Failure",
+  "description": "FSM fails to initialize because the reset signal is sampled asynchronously in a synchronous block.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [FSM_INIT] State remains X after reset",
+  "expected_root_cause": "The sensitivity list of the always_ff block is missing the reset signal [10, 14].",
+  "expected_fix_contains": "always_ff @(posedge clk or negedge rst_n)",
+  "rtl": "always_ff @(posedge clk) if (!rst_n) state <= IDLE;",
+  "testbench": "initial begin clk=0; rst_n=0; #10; rst_n=1; end",
+  "failure_log": "Reset pulsed while clock was idle. state stayed X.",
+  "success_log": "State initialized to IDLE via asynchronous reset path.",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n) if (!rst_n) state <= IDLE;",
+  "forbidden_targets": [
+    "next_state"
+  ],
+  "valid_signals": [
+    "clk",
+    "rst_n",
+    "state"
+  ]
+}

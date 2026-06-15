@@ -1,0 +1,26 @@
+{
+  "id": "AXI_LITE_018",
+  "title": "UVM Scoreboard Write Port Not Connected",
+  "description": "The UVM monitor's analysis port is not connected to the scoreboard's write export, causing the scoreboard to see zero transactions and report false coverage.",
+  "bug_signature": "UVM_WARNING: [SBD_IDLE] Scoreboard received 0 transactions after 10000 cycles",
+  "expected_root_cause": "Missing `connect_phase` wiring between the monitor's `ap` (analysis port) and the scoreboard's `analysis_export` [23, 24].",
+  "expected_fix_contains": "mon.ap.connect(sb.analysis_export)",
+  "failure_coverage": 0.0,
+  "success_coverage": 100.0,
+  "failure_log": "10000 cycles completed. SBD transaction count=0.\nUVM_WARNING: Scoreboard is idle \u2014 likely wiring error.",
+  "success_log": "Scoreboard receives transactions for every AXI-Lite transfer and reports matching counts.",
+  "rtl": "No RTL change needed.",
+  "fix_replacement": "function void connect_phase(uvm_phase phase); mon.ap.connect(sb.analysis_export); endfunction",
+  "testbench": "function void connect_phase(uvm_phase phase); /* missing connect */ endfunction",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "ap",
+    "analysis_export"
+  ],
+  "metadata": {
+    "channel": "GEN",
+    "bug_type": "UVM"
+  }
+}

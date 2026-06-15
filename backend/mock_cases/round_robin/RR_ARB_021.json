@@ -1,0 +1,29 @@
+{
+  "id": "RR_ARB_021",
+  "title": "Sticky Grant Released on AW-Channel Not B-Channel",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 5,
+  "sticky_until": "bvalid",
+  "bug_signature": "UVM_ERROR: [PROT] gnt released after AW handshake; B-channel response lost",
+  "rtl": "always_ff @(posedge clk)\n  if (awvalid && awready) gnt <= 4'h0;  // Released too early",
+  "testbench": "task check(); drive_write(); endtask",
+  "expected_root_cause": "The arbiter releases the write grant when the AW-channel handshake (AWVALID/AWREADY) completes rather than waiting for the write-response channel (BVALID/BREADY); the bus master loses its grant before the write response arrives.",
+  "expected_fix_contains": "if (bvalid && bready) gnt <= 4'h0",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n)\n  if (!rst_n)              gnt <= 4'h0;\n  else if (bvalid && bready) gnt <= 4'h0;  // Hold until B-channel completes\n  else if (!gnt_active)    gnt <= next_gnt;",
+  "description": "The arbiter releases the AXI write grant when AWREADY fires, but AXI requires holding the grant until the write response (BVALID/BREADY) completes.",
+  "failure_log": "UVM_ERROR: [PROT] gnt released after AW handshake; B-channel response lost",
+  "success_log": "Grant held through full AXI write: AW\u2192W\u2192B. Released after BVALID/BREADY.",
+  "valid_signals": [
+    "gnt",
+    "awvalid",
+    "awready",
+    "bvalid",
+    "bready"
+  ],
+  "forbidden_targets": [
+    "awvalid"
+  ],
+  "failure_coverage": 40.0,
+  "success_coverage": 100.0
+}

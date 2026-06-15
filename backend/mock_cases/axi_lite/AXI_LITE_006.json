@@ -1,0 +1,28 @@
+{
+  "id": "AXI_LITE_006",
+  "title": "Simultaneous AWVALID and ARVALID Arbitration Deadlock",
+  "description": "When both AWVALID and ARVALID are asserted simultaneously, the internal arbiter grants neither, entering a deadlock state.",
+  "bug_signature": "UVM_FATAL: [DEADLOCK] AWVALID=1 and ARVALID=1 both stuck \u2014 neither granted after 5000 cycles",
+  "expected_root_cause": "The arbitration condition uses XOR logic (`arvalid ^ awvalid`) which evaluates to 0 when both are high, preventing any grant [7, 8].",
+  "expected_fix_contains": "if (arvalid) gnt_ar = 1; else gnt_aw = 1",
+  "failure_coverage": 3.0,
+  "success_coverage": 90.0,
+  "failure_log": "ARVALID=1, AWVALID=1. GNT_AR=0, GNT_AW=0. Simulation timeout at 5000 cycles.",
+  "success_log": "Read granted first; write follows after read completes.",
+  "rtl": "assign gnt_ar = arvalid ^ awvalid; assign gnt_aw = awvalid ^ arvalid;",
+  "fix_replacement": "assign gnt_ar = arvalid; assign gnt_aw = !arvalid && awvalid;",
+  "testbench": "task run(); fork drive_read(); drive_write(); join endtask",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "arvalid",
+    "awvalid",
+    "gnt_ar",
+    "gnt_aw"
+  ],
+  "metadata": {
+    "channel": "ARB",
+    "bug_type": "Deadlock"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "FIFO_017",
+  "title": "FIFO MSB-Only Pointer Full Bug",
+  "description": "FIFO reports full as soon as the MSB of pointers differs, regardless of lower bits.",
+  "family": "fifo_buffer",
+  "clock_domain": "sync",
+  "data_width": 32,
+  "depth": 16,
+  "pointer_width": 5,
+  "bug_signature": "UVM_ERROR: [SBD_SIZE] FIFO full at depth 1",
+  "expected_root_cause": "Logic error: Missing the '&&' check for lower bits in the full flag [1].",
+  "expected_fix_contains": "assign full = (wptr[8] != rptr[8]) && (wptr[3:0] == rptr[3:0]);",
+  "rtl": "assign full = (wptr[8] != rptr[8]);",
+  "testbench": "task run(); push(1); endtask",
+  "failure_log": "wptr=1, rptr=0. MSBs match. wptr=16 (binary 10000). Full=1. FIFO blocked at 1 word.",
+  "success_log": "Full asserted only when 16 words are present.",
+  "fix_replacement": "assign full = (wptr[8] != rptr[8]) && (wptr[3:0] == rptr[3:0]);",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "full",
+    "wptr",
+    "rptr"
+  ]
+}

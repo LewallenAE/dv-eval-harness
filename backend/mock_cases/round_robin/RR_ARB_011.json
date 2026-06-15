@@ -1,0 +1,27 @@
+{
+  "id": "RR_ARB_011",
+  "title": "Double-Grant on Priority Pointer Rollover",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 1,
+  "sticky_until": "done",
+  "bug_signature": "UVM_ERROR: [MULTI_GNT] gnt=4'b1001 \u2014 two masters granted simultaneously",
+  "rtl": "assign gnt = req & {last_gnt[0] ? 4'hF : 4'h0};  // Mask is wrong at rollover",
+  "testbench": "task check(); req=2'b11; endtask",
+  "expected_root_cause": "The priority mask expression ({last_gnt[0] ? 4'hF : 4'h0}) does not correctly implement round-robin rotation; at the rollover boundary two masters simultaneously satisfy the mask condition producing a non-one-hot grant.",
+  "expected_fix_contains": "priority case (1'b1)",
+  "fix_replacement": "always_comb begin\n  gnt = 4'h0;\n  priority case (1'b1)\n    req[last_gnt]:          gnt = 4'h1 << last_gnt;\n    req[(last_gnt+1) % 4]:  gnt = 4'h1 << ((last_gnt+1) % 4);\n    req[(last_gnt+2) % 4]:  gnt = 4'h1 << ((last_gnt+2) % 4);\n    req[(last_gnt+3) % 4]:  gnt = 4'h1 << ((last_gnt+3) % 4);\n  endcase\nend",
+  "description": "At the rollover boundary (last_gnt=3 \u2192 0) both master 3 and master 0 are simultaneously granted for one cycle because the combinational mask straddles the boundary incorrectly.",
+  "failure_log": "UVM_ERROR: [MULTI_GNT] gnt=4'b1001 \u2014 two masters granted simultaneously",
+  "success_log": "gnt is always one-hot. No simultaneous grants detected.",
+  "valid_signals": [
+    "gnt",
+    "req",
+    "last_gnt"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0
+}

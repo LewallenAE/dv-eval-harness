@@ -1,0 +1,27 @@
+{
+  "id": "AXI_LITE_008",
+  "title": "Read Address Not Latched \u2014 Address Changes During Handshake",
+  "description": "The crossbar uses ARADDR combinationally to drive the slave select without latching it, so if the master changes ARADDR before ARREADY, the wrong slave is accessed.",
+  "bug_signature": "UVM_ERROR: [SBD_MISMATCH] Read response from S1 for address targeting S0",
+  "expected_root_cause": "ARADDR is used directly in combinational decoding without being registered at the ARVALID/ARREADY handshake point [1, 10].",
+  "expected_fix_contains": "if (arvalid && arready) lat_araddr <= araddr",
+  "failure_coverage": 40.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=10: ARADDR=0x1000 (S0). T=15: ARADDR=0x2000 (S1, changed). T=20: ARREADY=1. Slave S1 accessed instead of S0.",
+  "success_log": "ARADDR latched on handshake; downstream decoding uses registered value.",
+  "rtl": "assign slave_sel = decode(araddr);",
+  "fix_replacement": "always_ff @(posedge clk) if (arvalid && arready) lat_araddr <= araddr; assign slave_sel = decode(lat_araddr);",
+  "testbench": "task run(); vif.arvalid <= 1; vif.araddr <= 16'h1000; #5; vif.araddr <= 16'h2000; @(posedge clk); endtask",
+  "forbidden_targets": [
+    "arready"
+  ],
+  "valid_signals": [
+    "araddr",
+    "lat_araddr",
+    "arvalid"
+  ],
+  "metadata": {
+    "channel": "AR",
+    "bug_type": "Functional"
+  }
+}

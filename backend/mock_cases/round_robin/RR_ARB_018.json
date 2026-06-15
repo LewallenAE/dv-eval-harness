@@ -1,0 +1,27 @@
+{
+  "id": "RR_ARB_018",
+  "title": "Implicit Priority Inversion via Signal Order",
+  "family": "round_robin",
+  "num_masters": 2,
+  "fairness_window": 2,
+  "sticky_until": "rvalid",
+  "bug_signature": "UVM_ERROR: [FAIRNESS] Master 0 never granted when Master 1 continuously requests",
+  "rtl": "assign gnt[0] = req[0] && !req[1];  // Overridden if both asserted\nassign gnt[1] = req[1];              // Always wins \u2014 implicit priority",
+  "testbench": "task check(); req=2'b11; endtask",
+  "expected_root_cause": "Two concurrent assign statements both drive the gnt bus; the second assign (gnt[1] = req[1]) always overrides the first due to last-assignment-wins semantics, giving master 1 unconditional priority over master 0.",
+  "expected_fix_contains": "if (last_gnt == 1'b0 && req[1]) gnt = 2'h2",
+  "fix_replacement": "always_comb begin\n  gnt = 2'h0;\n  if      (last_gnt == 1'b0 && req[1]) gnt = 2'h2;\n  else if (last_gnt == 1'b0 && req[0]) gnt = 2'h1;\n  else if (last_gnt == 1'b1 && req[0]) gnt = 2'h1;\n  else if (last_gnt == 1'b1 && req[1]) gnt = 2'h2;\nend",
+  "description": "Two concurrent assigns drive gnt: the second assign always wins due to last-assignment-wins semantics in simulation, giving Master 1 implicit priority over Master 0 regardless of last_gnt.",
+  "failure_log": "UVM_ERROR: [FAIRNESS] Master 0 never granted when Master 1 continuously requests",
+  "success_log": "Round-robin: both masters granted alternately under continuous concurrent requests.",
+  "valid_signals": [
+    "gnt",
+    "req",
+    "last_gnt"
+  ],
+  "forbidden_targets": [
+    "req"
+  ],
+  "failure_coverage": 15.0,
+  "success_coverage": 100.0
+}

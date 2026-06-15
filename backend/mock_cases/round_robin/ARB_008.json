@@ -1,0 +1,27 @@
+{
+  "id": "ARB_008",
+  "title": "Arbiter FSM Illegal State \u2014 Missing Default",
+  "description": "The 2-bit arbiter FSM only handles states 0 and 1 in its case statement; if the state register reaches 2 or 3 via a scan-chain operation, the arbiter freezes without recovery.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_FATAL: [FSM_LOCK] Arbiter state=2'h3 after scan; FSM frozen; no recovery path",
+  "expected_root_cause": "The case statement for the 2-bit arbiter state machine handles only states 0 and 1; states 2 and 3 have no branch, causing synthesis to treat them as don't-cares which can result in the FSM locking up when those states are reached.",
+  "expected_fix_contains": "default: state <= 2'h0",
+  "rtl": "always_ff @(posedge clk or negedge rst_n) begin\n  if (!rst_n) state <= 2'h0;\n  else case (state)\n    2'h0: if (req) state <= 2'h1;\n    2'h1: if (!req) state <= 2'h0;\n    // States 2 and 3 have no branch \u2014 synthesized as don't-care\n  endcase\nend",
+  "testbench": "initial begin force arb.state = 3'b111; #10; end",
+  "failure_log": "UVM_FATAL: [FSM_LOCK] Arbiter state=2'h3 after scan; FSM frozen; no recovery path",
+  "success_log": "Illegal state injection (state=2'h2): returns to 2'h0 next cycle. Arbiter resumes.",
+  "fix_replacement": "always_ff @(posedge clk or negedge rst_n) begin\n  if (!rst_n) state <= 2'h0;\n  else case (state)\n    2'h0: if (req) state <= 2'h1;\n    2'h1: if (!req) state <= 2'h0;\n    default: state <= 2'h0;  // Escape illegal states\n  endcase\nend",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "state",
+    "req"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}

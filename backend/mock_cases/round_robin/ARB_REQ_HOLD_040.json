@@ -1,0 +1,16 @@
+{
+  "id": "ARB_REQ_HOLD_040",
+  "title": "Arbiter Grant-Req Hold Violation",
+  "family": "round_robin",
+  "machine_type": "mealy",
+  "encoding": "binary",
+  "state_enum": [],
+  "has_default_case": true,
+  "bug_signature": "UVM_ERROR: [PROT] REQ dropped while GNT was high",
+  "rtl": "assign gnt = req & mask; // Combinational",
+  "testbench": "task run(); req=1; #5 req=0; endtask",
+  "expected_root_cause": "The arbiter does not register the request, allowing the master to drop 'req' before the handshake is acknowledged [30, 40].",
+  "expected_fix_contains": "assert property (req |-> gnt throughout txn)",
+  "fix_replacement": "always_ff @(posedge clk) req_q <= req; assign gnt = req_q & mask;",
+  "description": "Protocol handshake failure where signals are dropped before synchronization."
+}

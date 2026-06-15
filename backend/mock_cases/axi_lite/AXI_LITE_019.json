@@ -1,0 +1,27 @@
+{
+  "id": "AXI_LITE_019",
+  "title": "Address Phase Accepted Without VALID \u2014 Protocol Violation",
+  "description": "The crossbar samples AWADDR on a rising edge even when AWVALID is low, latching garbage data as a pending write address.",
+  "bug_signature": "UVM_ERROR: [AXI_PROT_CHECK] Address latched while AWVALID=0",
+  "expected_root_cause": "The address latch enable condition incorrectly uses `awready` alone instead of `awvalid && awready` [1, 25].",
+  "expected_fix_contains": "if (awvalid && awready) lat_addr <= awaddr",
+  "failure_coverage": 20.0,
+  "success_coverage": 100.0,
+  "failure_log": "T=10: AWVALID=0, AWREADY=1. AWADDR=0xDEAD (floating). lat_addr=0xDEAD.\nUVM_ERROR: Invalid address accepted.",
+  "success_log": "Address only latched when both AWVALID and AWREADY are high.",
+  "rtl": "always_ff @(posedge clk) if (awready) lat_addr <= awaddr;",
+  "fix_replacement": "always_ff @(posedge clk) if (awvalid && awready) lat_addr <= awaddr;",
+  "testbench": "task run(); vif.awvalid <= 0; vif.awready <= 1; @(posedge clk); endtask",
+  "forbidden_targets": [
+    "awready"
+  ],
+  "valid_signals": [
+    "awvalid",
+    "awready",
+    "lat_addr"
+  ],
+  "metadata": {
+    "channel": "AW",
+    "bug_type": "Handshake"
+  }
+}

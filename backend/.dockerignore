@@ -1,0 +1,26 @@
+# Virtual environment
+.venv/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Tests
+tests/
+
+# Runtime trace artifacts — mounted as a volume at runtime
+traces/
+
+# Secrets
+.env
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Build artifacts
+*.egg-info/
+dist/
+build/

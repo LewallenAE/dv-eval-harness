@@ -1,0 +1,26 @@
+{
+  "id": "ARB_005",
+  "title": "Arbiter Sequential Grant Glitch",
+  "description": "Grant signal pulses high for one cycle when transitioning between Master 0 and Master 1.",
+  "family": "round_robin",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_ERROR: [SVA_GLITCH] GNT had multiple transitions in one cycle",
+  "expected_root_cause": "Grant logic is purely combinational and reacts to intermediate states of the priority encoder [10].",
+  "expected_fix_contains": "always_ff @(posedge clk) gnt <= next_gnt;",
+  "rtl": "assign gnt = next_gnt_comb;",
+  "testbench": "task run(); req=2'b01; #10; req=2'b10; endtask",
+  "failure_log": "Grant signal shows transient 2'b11 before settling to 2'b10.",
+  "success_log": "Grant signal registered; clean transition observed.",
+  "fix_replacement": "always_ff @(posedge clk) gnt <= next_gnt;",
+  "forbidden_targets": [
+    "req"
+  ],
+  "valid_signals": [
+    "gnt",
+    "clk",
+    "next_gnt"
+  ]
+}

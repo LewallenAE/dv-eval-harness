@@ -1,0 +1,27 @@
+{
+  "id": "FSM_005",
+  "title": "FSM Deadlock in Unmapped States 3-7",
+  "description": "The 3-bit state register can hold values 3\u20137 but the case statement only maps values 0\u20132; an illegal state reached via scan-shift or SEU causes the FSM to freeze indefinitely.",
+  "family": "fsm_controller",
+  "clock_domain": "sync",
+  "data_width": 0,
+  "depth": 0,
+  "pointer_width": 0,
+  "bug_signature": "UVM_FATAL: [FSM_LOCK] state=3'h5 after scan-shift; next_state=3'bx; FSM frozen",
+  "expected_root_cause": "The case statement handles only states 3'h0 through 3'h2; any state value from 3 to 7 has no matching branch, leaving next_state undefined and freezing the FSM permanently.",
+  "expected_fix_contains": "default: next_state = 3'h0",
+  "rtl": "always_comb begin\n  case (state)\n    3'h0: next_state = 3'h1;\n    3'h1: next_state = 3'h2;\n    3'h2: next_state = 3'h0;\n    // States 3-7 unhandled \u2014 FSM freezes\n  endcase\nend",
+  "testbench": "initial begin force state = 3'b111; #10; release state; end",
+  "failure_log": "UVM_FATAL: [FSM_LOCK] state=3'h5 after scan-shift; next_state=3'bx; FSM frozen",
+  "success_log": "Illegal state injection (state=3'h6): FSM returns to 3'h0 in one cycle. No lockup.",
+  "fix_replacement": "always_comb begin\n  case (state)\n    3'h0: next_state = 3'h1;\n    3'h1: next_state = 3'h2;\n    3'h2: next_state = 3'h0;\n    default: next_state = 3'h0;  // Escape illegal states\n  endcase\nend",
+  "forbidden_targets": [
+    "clk"
+  ],
+  "valid_signals": [
+    "state",
+    "next_state"
+  ],
+  "failure_coverage": 5.0,
+  "success_coverage": 100.0
+}
