@@ -21,7 +21,7 @@ def _bug_present(case: DVCase, rtl: str) -> bool:
     if case.fix_replacement and case.fix_replacement.strip() in rtl:
         return False
 
-    # RTL is unchanged from the original buggy version → bug still present
+    # If RTL is unchanged from the original buggy version → bug still present
     if case.rtl and rtl.strip() == case.rtl.strip():
         return True
 
